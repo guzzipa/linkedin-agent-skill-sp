@@ -1,52 +1,61 @@
 # voice.md
 
-Copy this to `~/.claude/linkedin/voice.md` and fill it in. Every skill in the
-pack reads it. Ten minutes here is the difference between drafts you post and
-drafts you rewrite.
+Copiá esto a `~/.claude/linkedin/voice.md` y completalo. Todos los skills del
+paquete lo leen. Diez minutos acá son la diferencia entre borradores que
+publicás y borradores que reescribís.
 
-If you would rather not fill it in by hand, paste three of your own posts into
-Claude and say "write my voice.md from these". That works better than guessing
-at the answers.
+Si preferís no completarlo a mano, pegale a Claude tres posts tuyos y decile
+"escribí mi voice.md a partir de estos". Funciona mejor que adivinar.
 
 ---
 
-## Who I am
+## Quién soy
 
-- **Name:**
-- **What I do, in one sentence:**
-- **Who I am writing for:** (be specific: "agency owners doing $1-5M", not "professionals")
-- **What I sell:**
+- **Nombre:**
+- **Qué hago, en una oración:**
+- **Para quién escribo:** (concreto: "directores de riesgo de bancos medianos de LatAm", no "profesionales")
+- **Qué quiero que pase gracias a LinkedIn este año:** (un trabajo, clientes, alumnos, reputación)
+- **Qué vendo:** (un servicio, un producto, o a mí mismo si busco trabajo)
 
-## What I sound like
+## Audiencia
 
-- **Three of my own posts that sound most like me:** (paste them, or link them)
-- **Words I actually use:**
-- **Words I would never use:**
-- **Sentence length:** (short and punchy / mixed / long and considered)
-- **Do I swear:** (yes / mild / no)
-- **Emoji:** (never / one, rarely / freely)
-- **Contractions:** (yes - almost always yes)
+- **Países:** (y en qué proporción, si lo sabés)
+- **Zona horaria de referencia para publicar:** (la de la audiencia, no la tuya)
+- **Idiomas:** (solo español / español e inglés / sobre todo inglés)
 
-## My positions
+## Cómo sueno
 
-Three to five things I believe that some of my audience does not. These are
-where the good posts come from.
+- **Registro:** voseo / tuteo / usted / neutro / españa
+  (lo usan `li-human` y todos los skills; si mezclás, se marca)
+- **Tres posts míos que más suenan a mí:** (pegalos o linkealos)
+- **Palabras que uso de verdad:**
+- **Palabras que nunca usaría:** (agregalas también a `lexicons/es.json` si querés que se marquen)
+- **Jerga de mi industria que es legítima:** (para sacarla del léxico de manual: "escalable", "apalancamiento", etc.)
+- **Largo de oraciones:** (cortas / mezcladas / largas y pensadas)
+- **¿Digo malas palabras?:** (sí / leves / no)
+- **Emoji:** (nunca / uno, de vez en cuando / libremente)
+- **Anglicismos:** (los uso naturalmente / los evito / solo los técnicos)
+
+## Mis posturas
+
+Tres a cinco cosas que creo y que parte de mi audiencia no. De ahí salen los
+buenos posts. (Si corriste `/li-territorio`, están en `territorio.md`.)
 
 1.
 2.
 3.
 
-## Off limits
+## Fuera de límites
 
-- **Topics I do not post about:**
-- **Clients or numbers I cannot name publicly:**
-- **Claims I am not allowed to make:** (regulated industry, employer policy, NDA)
+- **Temas de los que no publico:**
+- **Empleadores, clientes o números que no puedo nombrar:**
+- **Afirmaciones que no puedo hacer:** (industria regulada, política del empleador, NDA)
 
-## Proof I can use
+## Pruebas que puedo usar
 
-Real numbers, outcomes and stories I am happy to put my name on. The skills
-will never invent one, so if this section is empty, every draft comes back
-with `{{your number}}` in it.
+Números, resultados e historias reales que estoy dispuesto a firmar. Los
+skills nunca inventan una, así que si esta sección está vacía, cada borrador
+vuelve con `{{tu número}}` adentro.
 
 -
 -
