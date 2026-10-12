@@ -1,0 +1,7 @@
+El lunes la potencia del servidor no alcanzó y se cayó el onboarding durante 40 minutos.
+
+Lo arreglamos con una cola. Nada heroico (y bastante vergonzoso, la verdad): faltaba un límite que cualquiera de nosotros podría haber puesto en marzo.
+
+Ojo con esto si tenés un pico de altas los días de cobro. A nosotros nos pasa el 1 y el 15 de cada mes, y ese día entran 3 veces más usuarios que un martes cualquiera.
+
+¿Vos cómo lo manejás?

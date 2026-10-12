@@ -76,6 +76,14 @@ def texto_humano_no_tiene_marcas():
 
 
 @test
+def sin_falsos_positivos_en_texto_legitimo():
+    # "la potencia del servidor" es sustantivo, no el verbo "potenciar"
+    rep = humanize("humano_es_2.txt", "--registro", "voseo")["report"]
+    assert not rep["lexical_flags"] and not rep["structures"], rep
+    assert detect("humano_es_2.txt", "--registro", "voseo")["verdict"] == "PASA"
+
+
+@test
 def separa_humano_de_slop():
     h, s = detect("humano_es.txt"), detect("slop_es.txt")
     assert h["verdict"] == "PASA", h

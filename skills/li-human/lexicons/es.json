@@ -590,7 +590,7 @@
    "label": "ahondar"
   },
   {
-   "pattern": "potenci(?:ar|a|an|ando|amos|ó|aron|ará|arán)",
+   "pattern": "potenci(?:ar|an|ando|amos|ó|aron|ará|arán|amos)",
    "replace": null,
    "family": "verbos",
    "label": "potenciar",
