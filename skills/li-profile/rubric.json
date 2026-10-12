@@ -1,67 +1,72 @@
 {
-  "version": "1.0",
-  "total": 100,
-  "note": "Twelve items. Score each honestly - a generous score helps nobody. Most first-pass profiles land in the 30s and 40s.",
-  "items": [
-    {
-      "id": "headline",
-      "points": 12,
-      "full_marks": "States who you help and what changes for them, carries one piece of proof, and is not the job title. Uses the 220 characters, not 60."
-    },
-    {
-      "id": "about_open",
-      "points": 10,
-      "full_marks": "First two lines - everything visible before 'see more' - name the reader's problem. No 'passionate about', no third-person bio, no opening with your own name."
-    },
-    {
-      "id": "about_body",
-      "points": 10,
-      "full_marks": "Written to one person in second person: their problem, what you do, one number as proof, what to do next. Under 1,400 characters."
-    },
-    {
-      "id": "featured",
-      "points": 8,
-      "full_marks": "Three items: best-performing post, a proof asset, and the way to contact you. Nothing empty, nothing stale."
-    },
-    {
-      "id": "banner",
-      "points": 6,
-      "full_marks": "One line of positioning and one way to reach you. Not the default gradient, not a stock skyline."
-    },
-    {
-      "id": "photo",
-      "points": 6,
-      "full_marks": "Face fills roughly 60% of the frame, eyes visible, shot in the last two years, background not distracting."
-    },
-    {
-      "id": "current_role",
-      "points": 10,
-      "full_marks": "One line of scope, then two to three outcome bullets with numbers. Duties are not outcomes."
-    },
-    {
-      "id": "experience_depth",
-      "points": 8,
-      "full_marks": "Last two roles detailed, everything older than ten years compressed to a single line each."
-    },
-    {
-      "id": "skills",
-      "points": 6,
-      "full_marks": "Top three skills are the three you want to be hired for and are endorsed. The other 47 are noise."
-    },
-    {
-      "id": "recommendations",
-      "points": 8,
-      "full_marks": "At least three received in the last two years, each naming a specific outcome rather than character."
-    },
-    {
-      "id": "activity",
-      "points": 10,
-      "full_marks": "Posted or commented in the last seven days. An empty activity feed reads as an abandoned profile."
-    },
-    {
-      "id": "contact",
-      "points": 6,
-      "full_marks": "Custom URL, a working email or booking link in contact info, and the same handle as your other platforms."
-    }
-  ]
+ "version": "1.0-es",
+ "total": 100,
+ "nota": "Trece ítems. Puntuá con honestidad: un puntaje generoso no le sirve a nadie. La mayoría de los perfiles en primera pasada quedan entre 30 y 45. El ítem nuevo es la coherencia temática: el ranking actual lee el perfil como texto y lo cruza con lo que publicás.",
+ "items": [
+  {
+   "id": "titular",
+   "puntos": 12,
+   "puntaje_completo": "Dice a quién ayudás y qué cambia para ellos, trae una prueba, y no es solo el cargo. Usa los 220 caracteres, no 60. Incluye las dos o tres palabras de tus territorios tal como las buscaría alguien."
+  },
+  {
+   "id": "acerca_de_apertura",
+   "puntos": 10,
+   "puntaje_completo": "Las dos primeras líneas, todo lo que se ve antes de 'ver más', nombran el problema del lector. Sin 'apasionado por', sin biografía en tercera persona, sin empezar con tu nombre."
+  },
+  {
+   "id": "acerca_de_cuerpo",
+   "puntos": 8,
+   "puntaje_completo": "Escrito a una persona, en segunda persona y en tu registro: su problema, qué hacés, un número como prueba, qué hacer después. Menos de 1.600 caracteres."
+  },
+  {
+   "id": "coherencia_tematica",
+   "puntos": 7,
+   "puntaje_completo": "Titular, Acerca de, experiencia actual y aptitudes principales nombran los mismos dos o tres territorios sobre los que publicás. Alguien que lee solo el perfil adivina de qué tratan tus posts."
+  },
+  {
+   "id": "destacados",
+   "puntos": 8,
+   "puntaje_completo": "Tres ítems: el mejor post, una pieza de prueba y la forma de contactarte. Nada vacío, nada viejo."
+  },
+  {
+   "id": "portada",
+   "puntos": 5,
+   "puntaje_completo": "Una línea de posicionamiento y una forma de contacto. No el degradado por defecto ni una foto de ciudad de stock."
+  },
+  {
+   "id": "foto",
+   "puntos": 5,
+   "puntaje_completo": "La cara ocupa cerca del 60% del cuadro, ojos visibles, foto de los últimos dos años, fondo que no distrae."
+  },
+  {
+   "id": "rol_actual",
+   "puntos": 10,
+   "puntaje_completo": "Una línea de alcance (equipo, presupuesto, países) y dos o tres viñetas de resultados con números. Las tareas no son resultados. Si estás entre trabajos, el rol actual dice qué estás haciendo ahora (asesoría, docencia, proyecto) y no queda vacío."
+  },
+  {
+   "id": "experiencia",
+   "puntos": 7,
+   "puntaje_completo": "Los dos últimos roles detallados, todo lo de más de diez años comprimido a una línea cada uno."
+  },
+  {
+   "id": "aptitudes",
+   "puntos": 6,
+   "puntaje_completo": "Las tres primeras aptitudes son las tres por las que querés que te contraten, están validadas, y coinciden con tus territorios. Las otras 47 son ruido."
+  },
+  {
+   "id": "recomendaciones",
+   "puntos": 8,
+   "puntaje_completo": "Al menos tres recibidas en los últimos dos años, cada una nombra un resultado concreto y no solo el carácter."
+  },
+  {
+   "id": "actividad",
+   "puntos": 9,
+   "puntaje_completo": "Publicó o comentó en los últimos siete días, y la actividad cae dentro de sus territorios. Un feed vacío se lee como perfil abandonado."
+  },
+  {
+   "id": "contacto",
+   "puntos": 5,
+   "puntaje_completo": "URL personalizada, un mail o link de agenda que funciona en la información de contacto, y el mismo usuario que en tus otras plataformas."
+  }
+ ]
 }
