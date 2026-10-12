@@ -1,0 +1,11 @@
+En marzo apagamos un modelo de scoring que nos había costado ocho meses construir.
+
+Funcionaba. El AUC daba 0,81 en validación, mejor que el que reemplazaba. Lo apagamos igual, porque el equipo de cobranzas no lo usaba: seguían llamando primero a los clientes de siempre, en el orden de siempre.
+
+Tardé tres semanas en entender por qué. El modelo devolvía un número del 1 al 1000 y nadie sabía qué hacer con un 640.
+
+Lo rehicimos en dos días. Mismo modelo, otra salida: tres colores y una frase ("llamalo hoy", "esperá al viernes", "no lo llames"). En el primer mes la recuperación subió 11 puntos.
+
+La lección no es nueva, ya sé. Pero la aprendí tarde y me salió cara.
+
+Si armás modelos para un equipo que no es de datos, mostrale la salida antes de entrenar nada. ¿Qué es lo primero que le preguntás vos a quien lo va a usar?

@@ -1,29 +1,32 @@
 #!/usr/bin/env python3
 """
-humanize.py - strip the machine fingerprint out of a draft.
+humanize.py - saca la huella de máquina de un borrador, en español o en inglés.
 
-Three passes, in this order:
+Cuatro pasadas, en este orden:
 
-  1. INVISIBLE   delete or normalise the characters a human keyboard never
-                 produces: zero-width joiners, word joiners, soft hyphens,
-                 BOMs, Unicode tag characters, non-breaking and narrow spaces.
-                 These survive copy-paste and are the most mechanical tell in
-                 any generated text.
-  2. TYPOGRAPHIC em dash -> comma, en dash -> hyphen, curly quotes -> straight,
-                 ellipsis -> three dots, bullet -> hyphen.
-  3. LEXICAL     replace the slop lexicon in slop.json with plain words,
-                 preserving capitalisation and leaving URLs untouched.
+  1. INVISIBLES   borra los caracteres que un teclado humano no produce:
+                  espacios de ancho cero, word joiners, guiones blandos, BOM,
+                  caracteres de etiqueta Unicode, espacios duros y finos.
+  2. TIPOGRAFÍA   raya -> coma, comillas curvas -> rectas, elipsis -> tres
+                  puntos, viñeta -> guion.
+  3. LÉXICO       reemplaza lo que tiene reemplazo seguro (conectores de
+                  ensayo, calcos con equivalente exacto como "hace sentido")
+                  y MARCA para reescribir a mano lo que depende del contexto,
+                  del género o del número ("robusto/a/os/as", "potenciar").
+                  Nunca mete una palabra de otro idioma.
+  4. ESTRUCTURAS  reporta, sin tocar: "No es solo X, es Y", "¿El resultado?",
+                  tríadas, cebo de interacción, mayúsculas de título en inglés,
+                  broetry, y la mezcla de voseo/tuteo/vosotros.
 
-Structural tells (rule-of-three, "not just X, it's Y", hashtag walls) are
-REPORTED, never auto-rewritten - rewriting a sentence's shape needs judgement,
-so that is the model's job, not a regex's.
+El idioma se detecta solo (es/en). El registro se toma de --registro o se
+infiere: si el texto mezcla "tenés" y "tienes", eso se marca siempre.
 
-Usage
-  python3 humanize.py draft.txt
-  python3 humanize.py draft.txt --report
+Uso
+  python3 humanize.py borrador.txt
+  python3 humanize.py borrador.txt --report
+  python3 humanize.py borrador.txt -o limpio.txt --report --registro voseo
   pbpaste | python3 humanize.py - --report
-  python3 humanize.py draft.txt --json
-  python3 humanize.py draft.txt -o clean.txt
+  python3 humanize.py borrador.txt --json
 """
 
 import argparse
@@ -34,27 +37,66 @@ import sys
 import unicodedata
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LEX = os.path.join(HERE, "slop.json")
+LEXDIR = os.path.join(HERE, "lexicons")
 
 URL_RE = re.compile(r"https?://\S+|www\.\S+|\S+@\S+\.\S+")
 SENT_RE = re.compile(r"[^.!?\n]+[.!?]*")
 
+STOP_ES = {"el", "la", "los", "las", "de", "del", "que", "y", "en", "un", "una", "por", "para",
+           "con", "es", "se", "no", "lo", "como", "más", "pero", "su", "al", "este", "esta"}
+STOP_EN = {"the", "and", "of", "to", "a", "in", "is", "that", "for", "it", "with", "as", "was",
+           "on", "are", "be", "this", "you", "i", "we", "not", "but", "at", "by"}
 
-def load_lexicon(path=LEX):
+REGISTRO_CHOQUES = {
+    # registro elegido -> formas que no deberían aparecer
+    "voseo": ["tuteo", "vosotros"],
+    "tuteo": ["voseo", "vosotros"],
+    "usted": ["voseo", "tuteo", "vosotros"],
+    "neutro": ["vosotros"],
+    "espana": ["voseo"],
+}
+
+
+# --------------------------------------------------------------------------
+# idioma y léxico
+
+def detect_lang(text):
+    toks = re.findall(r"[a-záéíóúñü]+", text.lower())
+    es = sum(t in STOP_ES for t in toks) + 2 * len(re.findall(r"[ñ¿¡áéíóú]", text.lower()))
+    en = sum(t in STOP_EN for t in toks)
+    return "es" if es >= en else "en"
+
+
+def load_lexicon(lang=None, path=None):
+    path = path or os.path.join(LEXDIR, f"{lang}.json")
     with open(path, encoding="utf-8") as fh:
         return json.load(fh)
 
 
+def entry_regex(entry):
+    body = entry.get("pattern") or re.escape(entry["find"]).replace(r"\ ", r"\s+")
+    return re.compile(r"(?<!\w)(?:" + body + r")(?!\w)", re.IGNORECASE)
+
+
+def entry_label(entry):
+    return entry.get("label") or entry.get("find") or entry.get("pattern")
+
+
+def word_regex(word):
+    return re.compile(r"(?<!\w)" + re.escape(word) + r"(?!\w)", re.IGNORECASE)
+
+
 def _cp(spec):
-    """'U+200B' -> '\\u200b';  'U+E0000-U+E007F' -> (start, end)."""
     if "-" in spec:
         a, b = spec.split("-")
         return (int(a[2:], 16), int(b[2:], 16))
     return int(spec[2:], 16)
 
 
+# --------------------------------------------------------------------------
+# URLs fuera del alcance de todas las pasadas
+
 def protect_urls(text):
-    """Swap URLs for placeholders so no pass rewrites inside a link."""
     found = []
 
     def stash(m):
@@ -70,8 +112,10 @@ def restore_urls(text, found):
     return text
 
 
+# --------------------------------------------------------------------------
+# pasadas
+
 def pass_invisible(text, lex):
-    """Delete or space-normalise invisible characters. Returns (text, hits)."""
     hits = []
     for entry in lex["invisible"]:
         cp = _cp(entry["cp"])
@@ -84,10 +128,9 @@ def pass_invisible(text, lex):
             hits.append({"name": entry["cp"] + " " + entry["name"], "count": n,
                          "action": entry["action"]})
             text = re.sub(pattern, "" if entry["action"] == "delete" else " ", text)
-    # Any remaining Cf (format) character is invisible by definition.
     stray = [c for c in text if unicodedata.category(c) == "Cf"]
     if stray:
-        hits.append({"name": "other invisible format chars", "count": len(stray),
+        hits.append({"name": "otros caracteres de formato invisibles", "count": len(stray),
                      "action": "delete"})
         text = "".join(c for c in text if unicodedata.category(c) != "Cf")
     return text, hits
@@ -100,19 +143,20 @@ def pass_typographic(text, lex):
         n = text.count(ch)
         if not n:
             continue
-        hits.append({"name": f"{ch} {entry['name']}", "count": n, "to": entry["to"].strip() or "(space)"})
+        hits.append({"name": f"{ch} {entry['name']}", "count": n,
+                     "to": entry["to"].strip() or "(espacio)"})
         if ch == "—":
-            # " word — word " and "word—word" both collapse to a comma + space.
+            # "un inciso — así — en medio" y "palabra—palabra" pasan a coma.
             text = re.sub(r"\s*—\s*", ", ", text)
         elif ch == "–":
-            text = re.sub(r"\s*–\s*(?=\d)", "-", text)      # 5–10  -> 5-10
-            text = re.sub(r"\s+–\s+", ", ", text)            # used as em dash
+            text = re.sub(r"\s*–\s*(?=\d)", "-", text)
+            text = re.sub(r"\s+–\s+", ", ", text)
             text = text.replace("–", "-")
         else:
             text = text.replace(ch, entry["to"])
-    # A comma inserted before existing punctuation reads wrong.
     text = re.sub(r",\s*([,.;:!?])", r"\1", text)
     text = re.sub(r",\s*\n", "\n", text)
+    text = re.sub(r"(?m)^,\s*", "", text)
     return text, hits
 
 
@@ -126,35 +170,100 @@ def _match_case(src, repl):
     return repl
 
 
+def _recapitalize(text):
+    """Después de borrar una frase al inicio de oración, la oración queda en minúscula."""
+    return re.sub(r"(^|[.!?]\s+|\n\s*|[¿¡])([a-záéíóúñ])",
+                  lambda m: m.group(1) + m.group(2).upper(), text)
+
+
 def pass_lexical(text, lex):
-    """Replace slop words and phrases. Longest first so phrases win."""
-    hits = []
+    """Reemplaza lo seguro y marca lo que necesita criterio. Frases más largas primero."""
+    fixed, flagged = [], []
     entries = sorted(lex["phrases"] + lex["words"],
-                     key=lambda e: len(e["find"]), reverse=True)
+                     key=lambda e: len(e.get("find") or e.get("pattern")), reverse=True)
+    deleted = False
     for entry in entries:
-        find = entry["find"]
-        pattern = re.compile(r"\b" + re.escape(find).replace(r"\ ", r"\s+") + r"\b",
-                             re.IGNORECASE)
-        found = pattern.findall(text)
+        rx = entry_regex(entry)
+        found = rx.findall(text)
         if not found:
             continue
-        hits.append({"find": find, "replace": entry["replace"] or "(deleted)",
-                     "count": len(found), "family": entry["family"]})
-        text = pattern.sub(lambda m: _match_case(m.group(0), entry["replace"]), text)
-    # Clean up after deletions.
+        if entry["replace"] is None:
+            flagged.append({"find": entry_label(entry), "count": len(found),
+                            "family": entry["family"], "nota": entry.get("nota", ""),
+                            "ejemplos": sorted({f.strip() for f in found})[:3]})
+            continue
+        fixed.append({"find": entry_label(entry), "replace": entry["replace"] or "(borrado)",
+                      "count": len(found), "family": entry["family"]})
+        if not entry["replace"]:
+            deleted = True
+        text = rx.sub(lambda m: _match_case(m.group(0), entry["replace"]), text)
     text = re.sub(r"[ \t]{2,}", " ", text)
     text = re.sub(r"(?m)^[ \t]*([,.;:])\s*", "", text)
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     text = re.sub(r"(?m)^[ \t]+$", "", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
-    # An em dash that became a comma, followed by a sentence connective, leaves
-    # a splice ("is important, also, it's proof"). Promote it to a full stop.
-    text = re.sub(r",\s*(also|so|still|basically|in the end)\s*,\s*",
+    if deleted:
+        text = _recapitalize(text)
+    # Una raya que pasó a coma seguida de conector deja una oración pegada.
+    text = re.sub(r",\s*(también|así que|por eso|igual|aun así|also|so|still|in the end)\s*,\s*",
                   lambda m: ". " + m.group(1)[0].upper() + m.group(1)[1:] + ", ", text)
-    return text, hits
+    return text, fixed, flagged
 
 
-def scan_structures(text, lex):
+# --------------------------------------------------------------------------
+# estructuras (se reportan, no se reescriben)
+
+def scan_registro(text, lex, registro="auto"):
+    """Devuelve (flags, conteos). Marca formas que chocan con el registro, o la mezcla."""
+    regs = lex.get("registros") or {}
+    if not regs:
+        return [], {}
+    counts = {}
+    for name, forms in regs.items():
+        hits = []
+        for w in forms:
+            hits += [m.group(0) for m in word_regex(w).finditer(text)]
+        counts[name] = hits
+    flags = []
+    if registro in REGISTRO_CHOQUES:
+        for other in REGISTRO_CHOQUES[registro]:
+            if counts.get(other):
+                flags.append({
+                    "id": f"registro-{other}",
+                    "name": f"Formas de {other} en un texto en {registro}",
+                    "count": len(counts[other]),
+                    "fix": "Pasalas a tu registro: " + ", ".join(sorted(set(counts[other]))[:6]) + ".",
+                })
+    else:
+        present = [k for k in ("voseo", "tuteo", "vosotros") if counts.get(k)]
+        if len(present) > 1:
+            flags.append({
+                "id": "registro-mezcla",
+                "name": "Mezcla de registros (" + " + ".join(present) + ")",
+                "count": sum(len(counts[k]) for k in present),
+                "fix": "Una persona no mezcla \"tenés\" con \"tienes\". Es la marca más clara de IA "
+                       "en un texto rioplatense. Elegí uno: "
+                       + "; ".join(f"{k}: {', '.join(sorted(set(counts[k]))[:4])}" for k in present) + ".",
+            })
+    return flags, {k: len(v) for k, v in counts.items()}
+
+
+def scan_broetry(text):
+    """Broetry: casi todos los párrafos son una sola oración corta."""
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip() and not p.strip().startswith("#")]
+    if len(paras) < 8:
+        return None
+    single = [p for p in paras
+              if len([s for s in SENT_RE.findall(p) if s.strip()]) <= 1 and len(p.split()) <= 14]
+    share = len(single) / len(paras)
+    if share >= 0.8:
+        return {"id": "broetry", "name": f"Broetry ({len(single)} de {len(paras)} párrafos son una frase suelta)",
+                "count": len(single),
+                "fix": "Uní dos o tres frases en un párrafo de verdad. El blanco ayuda; un poema de una línea por renglón cansa."}
+    return None
+
+
+def scan_structures(text, lex, registro="auto", lang="es"):
     flags = []
     for s in lex["structures"]:
         try:
@@ -162,34 +271,44 @@ def scan_structures(text, lex):
         except re.error:
             continue
         found = pattern.findall(text)
-        if found:
-            flags.append({"name": s["name"], "count": len(found), "fix": s["fix"]})
-    # Sentence-length uniformity is structural too.
-    lens = [len(s.split()) for s in SENT_RE.findall(text) if len(s.split()) > 2]
+        if len(found) >= s.get("min", 1):
+            flags.append({"id": s["id"], "name": s["name"], "count": len(found), "fix": s["fix"]})
+    lens = [len(s.split()) for s in SENT_RE.findall(text)
+            if re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{2}", s) and not s.strip().startswith("#")]
     if len(lens) >= 4:
         mean = sum(lens) / len(lens)
         var = sum((n - mean) ** 2 for n in lens) / len(lens)
         cv = (var ** 0.5) / mean if mean else 0
         if cv < 0.35:
             flags.append({
-                "name": f"Uniform sentence length (variation {cv:.2f})",
+                "id": "uniforme",
+                "name": f"Largo de oraciones uniforme (variación {cv:.2f})",
                 "count": len(lens),
-                "fix": "Break one sentence in half. Let another run long. Machines write even.",
+                "fix": "Partí una oración al medio. Dejá que otra se estire. La máquina escribe parejo.",
             })
+    b = scan_broetry(text)
+    if b:
+        flags.append(b)
+    reg_flags, _ = scan_registro(text, lex, registro)
+    flags += reg_flags
     return flags
 
 
-def humanize(text, lex):
+# --------------------------------------------------------------------------
+
+def humanize(text, lex, registro="auto", lang="es"):
     text, urls = protect_urls(text)
     text, inv = pass_invisible(text, lex)
     text, typo = pass_typographic(text, lex)
-    text, lexi = pass_lexical(text, lex)
+    text, fixed, flagged = pass_lexical(text, lex)
     text = restore_urls(text, urls)
     return text.strip() + "\n", {
+        "idioma": lang,
         "invisible": inv,
         "typographic": typo,
-        "lexical": lexi,
-        "structures": scan_structures(text, lex),
+        "lexical": fixed,
+        "lexical_flags": flagged,
+        "structures": scan_structures(text, lex, registro, lang),
     }
 
 
@@ -197,48 +316,58 @@ def render_report(report, out=sys.stderr):
     def head(title):
         print(f"\n{title}\n" + "-" * len(title), file=out)
 
-    total = sum(h["count"] for h in report["invisible"]) \
-        + sum(h["count"] for h in report["typographic"]) \
-        + sum(h["count"] for h in report["lexical"])
+    total = sum(h["count"] for k in ("invisible", "typographic", "lexical") for h in report[k])
+    to_rewrite = len(report["lexical_flags"]) + len(report["structures"])
 
-    head("HUMANIZE REPORT")
-    print(f"{total} machine artefacts removed, "
-          f"{len(report['structures'])} structural tells flagged for rewrite", file=out)
+    head(f"INFORME DEL HUMANIZADOR  [idioma: {report['idioma']}]")
+    print(f"{total} artefactos de máquina corregidos, {to_rewrite} cosas para reescribir a mano", file=out)
 
     if report["invisible"]:
-        head("1. INVISIBLE CHARACTERS")
+        head("1. CARACTERES INVISIBLES  (borrados)")
         for h in report["invisible"]:
-            print(f"  {h['count']:>3}x  {h['name']}  -> {h['action']}", file=out)
+            print(f"  {h['count']:>3}x  {h['name']}", file=out)
     if report["typographic"]:
-        head("2. TYPOGRAPHY")
+        head("2. TIPOGRAFÍA  (corregida)")
         for h in report["typographic"]:
             print(f"  {h['count']:>3}x  {h['name']}  -> {h['to']}", file=out)
     if report["lexical"]:
-        head("3. SLOP LEXICON")
+        head("3. LÉXICO  (reemplazado)")
         for h in report["lexical"]:
             print(f"  {h['count']:>3}x  {h['find']}  -> {h['replace']}   [{h['family']}]", file=out)
+    if report["lexical_flags"]:
+        head("4. LÉXICO PARA REESCRIBIR  (no se toca solo: depende del contexto)")
+        for h in report["lexical_flags"]:
+            ej = ", ".join(f'"{e}"' for e in h["ejemplos"])
+            print(f"  {h['count']:>3}x  {h['find']}   [{h['family']}]  en: {ej}", file=out)
+            if h["nota"]:
+                print(f"        {h['nota']}", file=out)
     if report["structures"]:
-        head("4. STRUCTURAL TELLS  (not auto-fixed - rewrite these yourself)")
+        head("5. ESTRUCTURAS  (reescribilas vos)")
         for h in report["structures"]:
             print(f"  {h['count']:>3}x  {h['name']}\n        {h['fix']}", file=out)
-    if not any(report.values()):
-        head("CLEAN")
-        print("  Nothing to strip.", file=out)
+    if not total and not to_rewrite:
+        head("LIMPIO")
+        print("  No hay nada que sacar.", file=out)
     print("", file=out)
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Strip the machine fingerprint out of a draft.")
-    ap.add_argument("input", nargs="?", default="-", help="file, or - for stdin")
-    ap.add_argument("-o", "--out", help="write cleaned text here instead of stdout")
-    ap.add_argument("--report", action="store_true", help="print what changed, to stderr")
-    ap.add_argument("--json", action="store_true", help="emit {text, report} as JSON")
-    ap.add_argument("--lexicon", default=LEX, help="path to slop.json")
+    ap = argparse.ArgumentParser(description="Saca la huella de máquina de un borrador.")
+    ap.add_argument("input", nargs="?", default="-", help="archivo, o - para stdin")
+    ap.add_argument("-o", "--out", help="escribir el texto limpio acá en vez de stdout")
+    ap.add_argument("--report", action="store_true", help="mostrar qué cambió (por stderr)")
+    ap.add_argument("--json", action="store_true", help="emitir {text, report} en JSON")
+    ap.add_argument("--lang", default="auto", choices=["auto", "es", "en"])
+    ap.add_argument("--registro", default="auto",
+                    choices=["auto", "voseo", "tuteo", "usted", "neutro", "espana"],
+                    help="registro del autor; auto = solo marca mezclas")
+    ap.add_argument("--lexicon", help="ruta a un léxico propio (pisa --lang)")
     args = ap.parse_args()
 
     raw = sys.stdin.read() if args.input == "-" else open(args.input, encoding="utf-8").read()
-    lex = load_lexicon(args.lexicon)
-    clean, report = humanize(raw, lex)
+    lang = detect_lang(raw) if args.lang == "auto" else args.lang
+    lex = load_lexicon(lang, args.lexicon)
+    clean, report = humanize(raw, lex, args.registro, lang)
 
     if args.json:
         print(json.dumps({"text": clean, "report": report}, indent=2, ensure_ascii=False))
@@ -246,7 +375,7 @@ def main():
     if args.out:
         with open(args.out, "w", encoding="utf-8") as fh:
             fh.write(clean)
-        print(f"wrote {args.out}", file=sys.stderr)
+        print(f"escrito: {args.out}", file=sys.stderr)
     else:
         sys.stdout.write(clean)
     if args.report:
