@@ -1,177 +1,194 @@
-# The LinkedIn agent skill
+# El agente de LinkedIn, en español
 
-Eleven Claude skills that run a LinkedIn account. Free, MIT, no signup, no API
-key, nothing to connect.
+Catorce skills de Claude para llevar una cuenta de LinkedIn en español (y en
+inglés cuando hace falta). Gratis, MIT, sin registro, sin API key, sin nada
+que conectar.
 
-One of them writes your posts off 21 hook formulas. One comments on other
-people's posts. One handles the replies under yours. One scores your profile
-out of 100 and rewrites what lost points. One plans the week: what to post,
-when, and who to engage with.
+Es una adaptación de
+[Jakeschincariol/linkedin-agent-skill](https://github.com/Jakeschincariol/linkedin-agent-skill),
+que funciona bien en inglés pero rompe los textos en castellano: su
+humanizador reemplazaba "crucial" por "important" adentro de un post en
+español, no veía ninguna de las muletillas de LinkedIn en nuestro idioma, y
+su chequeo de voz buscaba contracciones inglesas, así que un post en español
+casi nunca podía aprobar. Esta versión reescribe el humanizador, traduce y
+adapta los once skills a LatAm, y suma tres nuevos.
 
-And one is the humanizer, which is the reason the rest are usable. It strips
-the em dashes, the slop vocabulary and the invisible watermark characters out
-of a draft, then scores what is left against a five-check detection panel
-before you ever see it.
+**Nada se publica hasta que decís que sí.** Estos skills escriben. Publicás vos.
 
-**Nothing gets posted until you say yes.** These skills write. You post.
+## Qué cambió respecto del original
 
-## Install
+| | original | esta versión |
+| --- | --- | --- |
+| Idioma | solo inglés | español e inglés, detección automática; nunca cruza idiomas |
+| Léxico de manual | 113 términos en inglés | 92 entradas en español (frases, calcos, anglicismos, anuncios de LinkedIn) + el léxico inglés |
+| Reemplazos | todo automático ("paradigm" -> "model") | automático solo lo seguro; lo que depende de género o contexto se marca para reescribir |
+| Estructuras | 11, en inglés | 18 en español (mayúsculas de título en inglés, viñetas de emoji, aperturas de comentario invisibles, entre otras) + broetry y registro, calculados |
+| Registro | no existe | detecta mezcla de voseo y tuteo (la marca de IA más clara en un texto rioplatense) y choques con tu registro |
+| Chequeo de voz | contracciones inglesas | persona gramatical, primera persona del pasado, oralidad y registro |
+| Ganchos | 21 | 27: los 21 adaptados con ejemplos de la región + 6 nuevos |
+| Skills | 11 | 14: suma `li-territorio`, `li-lectores`, `li-bilingue` |
+| Tests | no | `tests/run_tests.py`, 11 casos |
 
-Paste this into Claude:
+## Instalar
 
-```
-https://github.com/Jakeschincariol/linkedin-agent-skill
-
-Install this skill, then confirm /li-post works.
-```
-
-Or do it yourself, in Claude Code:
-
-```bash
-git clone https://github.com/Jakeschincariol/linkedin-agent-skill.git
-cp -r linkedin-agent-skill/skills/li-* ~/.claude/skills/
-```
-
-Or as a plugin:
-
-```
-/plugin marketplace add Jakeschincariol/linkedin-agent-skill
-/plugin install linkedin-agent
-```
-
-Project-local instead of global: copy the same folders into your repo's
-`.claude/skills/`. No Claude Code at all? Paste any single `SKILL.md` at the
-top of a chat and it runs as a mode - you lose the two Python tools, which is
-most of the point of `/li-human`, but the rest works.
-
-Then spend ten minutes on `templates/voice.md`. Copy it to
-`~/.claude/linkedin/voice.md` and fill it in, or paste three of your own posts
-into Claude and say "write my voice.md from these". Every skill reads that
-file. Skip it and everything comes out sounding like everyone else.
-
-## The eleven
-
-| command | what it does |
-| --- | --- |
-| `/li-post` | One idea into a post. Three hook options from [21 formulas](skills/li-post/hooks.json), one full draft, humanized before you see it. |
-| `/li-comment` | Comments on other people's posts. Nine types, picked by what the post actually is. Never "Great post!". |
-| `/li-reply` | The thread under your own post. Sorts every comment into lead / substance / peer / support / noise, then writes in that order. |
-| `/li-profile` | Scores your profile against a [12-part rubric](skills/li-profile/rubric.json) out of 100, then rewrites in fix-first order. |
-| `/li-plan` | The week. What to post, when to post it, and the 10 people to engage with. Writes `~/.claude/linkedin/plan.md`. |
-| `/li-human` | The humanizer. Two scripts that actually run. See below. |
-| `/li-carousel` | Document posts. Slide-by-slide copy, the cover that earns the swipe, and the PDF to upload. |
-| `/li-repurpose` | One video, newsletter or transcript into a week of posts that each stand alone. |
-| `/li-dm` | The 200-character invite note, the first message, and the two follow-ups. Two. |
-| `/li-inbox` | Triages the inbox into lead / recruiter / peer / ask / spam, and tells you which tell gave the sequence away. |
-| `/li-audit` | Post-mortem on what you have already published. Ranks by engagement rate and reach multiple, not impressions. |
-
-## The humanizer
-
-`/li-human` ships two Python scripts with no dependencies. They run on your
-machine, on your text, and nothing is uploaded.
+En Claude Code:
 
 ```bash
-python3 humanize.py draft.txt --report      # clean it, show every change
-python3 detect.py draft.txt                  # score it, five checks
-python3 detect.py before.txt after.txt       # prove the delta
+git clone https://github.com/guzzipa/linkedin-agent-skill-sp.git
+cp -r linkedin-agent-skill-sp/skills/li-* ~/.claude/skills/
 ```
 
-**What comes out automatically:**
+O como plugin:
 
-- **Invisible characters.** Zero-width spaces and joiners, word joiners, soft
-  hyphens, byte-order marks, Unicode tag characters, non-breaking and narrow
-  spaces. Your keyboard does not make these. They survive copy-paste and they
-  are invisible in every editor you own.
-- **Typography.** Em dash to comma, en dash to hyphen, curly quotes to
-  straight, ellipsis to three dots.
-- **The lexicon.** 113 stock words and phrases with plain-English
-  replacements - delve, leverage, robust, seamless, crucial, testament to, "in
-  today's fast-paced world", "let that sink in" - with capitalisation preserved
-  and URLs untouched. It lives in
-  [`slop.json`](skills/li-human/slop.json) and it is meant to be edited.
+```
+/plugin marketplace add guzzipa/linkedin-agent-skill-sp
+/plugin install linkedin-agent-es
+```
 
-**What gets flagged instead of fixed:** "It's not just X, it's Y", rule-of-three
-triads, one-word rhetorical questions, hashtag walls, reflex engagement bait,
-uniform sentence length. Changing the shape of a sentence needs judgement, so
-those are handed back for a rewrite rather than mangled by a regex.
+En la app de Claude: subí la carpeta de cada skill como skill propio, o pegá
+un `SKILL.md` al principio de un chat y funciona como modo (sin los scripts de
+`li-human`, que son la mitad del valor).
 
-**The five checks**, scored 0-100, higher is more human:
+Después, diez minutos con `templates/voice.md`. Copialo a
+`~/.claude/linkedin/voice.md` y completalo, o pegale a Claude tres posts tuyos
+y decile "escribí mi voice.md a partir de estos". El campo **Registro**
+(voseo, tuteo, usted) lo usan todos los skills. Y corré `/li-territorio` antes
+del primer plan.
 
-| check | what it measures |
+## Los catorce
+
+| comando | qué hace |
 | --- | --- |
-| BURSTINESS | sentence-length variation. Models write even. |
-| SPECIFICITY | numbers, names and concrete markers per 100 words |
-| SLOP DENSITY | lexicon hits per 100 words |
-| FINGERPRINT | invisible characters, em dashes, curly quotes per 1,000 |
-| VOICE | contractions, person, structural tells |
+| `/li-territorio` | **Nuevo.** Tus 2-3 territorios, el banco de tesis discutibles y el banco de pruebas. El ranking lee perfil y posts como texto; esto los alinea. |
+| `/li-post` | Una idea a un post. Tres ganchos de [27 fórmulas](skills/li-post/hooks.json), un borrador, humanizado, y el **kit de la primera hora**: primer comentario y respuestas preparadas a las objeciones previstas. |
+| `/li-lectores` | **Nuevo.** Pre mortem con cinco lectores simulados: quién deja de leer dónde, qué comentaría cada uno, qué se puede sacar de contexto. Riesgos de confidencialidad primero. |
+| `/li-comment` | Comentarios en posts ajenos. Diez tipos, incluido "la mirada local" (cómo cambia en LatAm). Nunca "Excelente post". |
+| `/li-reply` | El hilo debajo de tu post, ordenado en oportunidad / sustancia / par / apoyo / ruido. |
+| `/li-profile` | Puntúa tu perfil con una [rúbrica de 13 partes](skills/li-profile/rubric.json) sobre 100, incluida la coherencia entre perfil y posts, y reescribe en orden de impacto. |
+| `/li-plan` | La semana: qué, cuándo (con la cuenta de husos horarios de LatAm) y con quién interactuar. |
+| `/li-bilingue` | **Nuevo.** Transcreación español-inglés de posts y perfil. Moneda, contexto local, registro, falsos amigos. |
+| `/li-human` | El humanizador. Dos scripts que corren de verdad. Ver abajo. |
+| `/li-carousel` | Carruseles: texto slide por slide, la portada y el PDF, ajustado a que el español ocupa más. |
+| `/li-repurpose` | Un video, newsletter o clase en una semana de posts, sin traducir fuentes en inglés. |
+| `/li-dm` | La nota de invitación, el primer mensaje y dos seguimientos. Dos. |
+| `/li-inbox` | Ordena la bandeja y detecta secuencias automáticas, también por mezcla de registros. |
+| `/li-audit` | Post mortem de lo publicado: interacción, guardados, envíos y visitas al perfil, no impresiones. |
 
-The verdict weights the mean at 60% and the **weakest single check** at 40%,
-because a detector only needs one signal to fire.
+## El humanizador
 
-Run against a deliberately terrible draft:
+`/li-human` trae dos scripts de Python sin dependencias. Corren en tu máquina
+y no suben nada.
 
-```
-  BURSTINESS    ##################......  73.0
-  SPECIFICITY   ######################## 100.0
-  SLOP DENSITY  ........................   0.0    19 stock terms, 24.1 per 100 words
-  FINGERPRINT   ........................   0.0    1 invisible, 1 em dash, 3 curly quote
-  VOICE         ########................  33.3    3 structural tells
-  ------------------------------------------------------------
-  HUMAN SCORE   ######..................  24.8   FLAGGED
-```
-
-After `humanize.py`, with the flagged structures still unrewritten:
-
-```
-  HUMAN SCORE   #################.......  69.7   REVIEW    (+44.9)
-```
-
-The last stretch to PASS is the part the script deliberately leaves to you.
-
-## The fine print, which is the honest part
-
-**These skills do not post to LinkedIn, and they should not.** There is no
-official API for posting to a personal profile without an approved partner
-app, and automating the site with a browser or a third-party tool violates
-[LinkedIn's User Agreement](https://www.linkedin.com/legal/user-agreement) and
-gets accounts restricted. So every skill here ends the same way: a copy-ready
-block, and you paste it. That is not a limitation bolted on afterwards, it is
-the design. It is also why the approval gate is real rather than a setting.
-
-**The five checks are local heuristics, not detector APIs.** They are modelled
-on the signals public detectors key on, and they run entirely on your machine.
-They are not GPTZero, Originality, Copyleaks, Winston or Turnitin, they do not
-call those services, and they cannot promise those verdicts. Fixing what they
-measure tends to move those numbers, because they are measuring the same
-underlying things. That is the whole claim. Nobody can honestly sell you
-"undetectable", and anybody who does is selling you something.
-
-**The invisible-character pass is real and it is narrow.** It removes the
-zero-width and format characters that end up in generated text and survive a
-copy-paste. That is a genuine, checkable fingerprint. It is not a claim about
-defeating a cryptographic watermarking scheme, and this repo does not make
-one.
-
-**Nothing here fabricates.** No invented metrics, clients or outcomes go under
-your name. If a draft needs a number you have not given, it comes back with
-`{{your number}}` in it and a flag, every time.
-
-## Files
-
-```
-skills/li-post/hooks.json        21 hook formulas: template, example, what it is for, how it gets ruined
-skills/li-human/slop.json        the lexicon: 113 terms, 17 invisible classes, 11 structural tells
-skills/li-human/humanize.py      the three cleaning passes
-skills/li-human/detect.py        the five-check panel
-skills/li-profile/rubric.json    the 100-point profile score
-templates/voice.md               your voice profile. Fill this in first.
+```bash
+python3 humanize.py borrador.txt --report --registro voseo   # limpia y muestra cada cambio
+python3 detect.py borrador.txt                                # puntúa, cinco chequeos
+python3 detect.py antes.txt despues.txt                       # la diferencia
 ```
 
-## Credit
+**Se arregla solo:** caracteres invisibles, rayas, comillas curvas, conectores
+de ensayo ("asimismo", "por ende"), relleno ("es importante destacar que") y
+calcos con equivalente exacto ("hace sentido", "al final del día").
 
-Made by Jake Schincariol, [opusjake.ai](https://opusjake.ai).
-The full write-up is at [opusjake.ai/r/linkedin-agent](https://opusjake.ai/r/linkedin-agent).
+**Se marca para que lo reescribas:** "robusto", "potenciar", "innovador",
+"sinergia", "la clave está en", "llevar al siguiente nivel", "me complace
+anunciar", "No es solo X, es Y", "¿El resultado?", "En resumen", "¿Qué
+opinan?", "Comentá GUÍA y te lo mando", "Cómo Escalar Tu Equipo De Datos", las
+listas con ✅, el broetry, y "tenés" mezclado con "tienes". En español casi
+todo lo de manual necesita concordar en género y número o cambia según el
+contexto, así que un regex lo arruinaría. Por eso, en un post de manual en
+español el script solo sube unos puntos: la mejora fuerte la hacés vos con la
+lista que te da.
 
-## License
+**Los cinco chequeos**, de 0 a 100, más alto es más humano:
 
-MIT. Take it, change it, ship it.
+| chequeo | qué mide |
+| --- | --- |
+| VARIACIÓN | variación del largo de oraciones; las cortas cuentan |
+| CONCRECIÓN | cifras con unidad ("ocho meses", "11 puntos"), fechas, siglas, nombres, citas |
+| LÉXICO | términos de manual cada 100 palabras |
+| HUELLA | invisibles, rayas, comillas curvas |
+| VOZ | persona gramatical, oralidad, registro coherente, estructuras |
+
+Un post de manual en español de los tests:
+
+```
+  VARIACIÓN    #################.......  72.2
+  CONCRECIÓN   ################........  65.6
+  LÉXICO       ........................   0.0   9 términos de manual, 9.4 cada 100 palabras
+  HUELLA       #################.......  71.3   1 raya
+  VOZ          ........................   0.0   registro:voseo+tuteo, no-es-solo, no-se-trata, revelacion
+  PUNTAJE      ######..................  25.1   MARCADO
+```
+
+Un post escrito por una persona, en los mismos tests:
+
+```
+  VARIACIÓN    ####################....  81.6
+  CONCRECIÓN   ######################## 100.0   4 cifras con unidad, 2 fechas, 3 citas
+  LÉXICO       ######################## 100.0
+  HUELLA       ######################## 100.0
+  VOZ          ######################..  89.6
+  PUNTAJE      #####################...  89.2   PASA
+```
+
+```bash
+python3 tests/run_tests.py   # 11/11 ok
+```
+
+## La letra chica, que es la parte honesta
+
+**Estos skills no publican en LinkedIn, y no deberían.** Publicar de forma
+automatizada o leer el feed con un navegador viola el
+[Acuerdo de Usuario de LinkedIn](https://www.linkedin.com/legal/user-agreement)
+y termina en cuentas restringidas. Todo skill termina igual: un bloque para
+copiar, y lo pegás vos.
+
+**Los cinco chequeos son heurísticas locales, no detectores.** No son GPTZero,
+Originality, Copyleaks, Winston ni Turnitin, no llaman a esas APIs y no pueden
+prometer su veredicto. Nadie puede venderte "indetectable" con honestidad.
+
+**`li-lectores` es una simulación, no un dato.** Sirve para ver lo obvio que
+el autor no ve. Lo que pasó de verdad lo dice `li-audit`.
+
+**Nada acá inventa.** Ninguna métrica, cliente ni resultado va con tu nombre.
+Si un borrador necesita un número que no diste, vuelve con `{{tu número}}` y
+un aviso.
+
+**Lo que se dice del algoritmo es consenso de la industria, no documentación
+oficial.** LinkedIn no publica cómo rankea. Lo que usan estos skills (peso de
+los comentarios con sustancia y del tiempo de lectura, guardados y envíos,
+links fuera del cuerpo, hashtags casi irrelevantes, coherencia temática entre
+perfil y posts, castigo a los pods) es lo que coinciden en reportar las
+fuentes de abajo en 2025 y 2026. Son supuestos previos: `li-audit` los
+confirma o los descarta para tu cuenta.
+
+## Archivos
+
+```
+skills/li-post/hooks.json             27 fórmulas de gancho: plantilla, ejemplo, para qué sirve, cómo se arruina
+skills/li-human/lexicons/es.json      léxico en español: frases, palabras, 18 estructuras, registros, oralidad
+skills/li-human/lexicons/en.json      léxico en inglés (el original, con reemplazos dudosos pasados a marca)
+skills/li-human/humanize.py           las pasadas de limpieza
+skills/li-human/detect.py             el panel de cinco chequeos
+skills/li-profile/rubric.json         el puntaje de perfil sobre 100
+templates/voice.md                    tu perfil de voz. Completalo primero.
+tests/                                runner y textos de prueba
+```
+
+## Fuentes consultadas para la adaptación
+
+- [LinkedIn suma guardados y envíos a sus métricas de contenido](https://www.socialmediatoday.com/news/linkedin-adds-save-and-send-data-to-content-insights/759828/) (Social Media Today, sept. 2025)
+- [Cómo funciona el algoritmo de LinkedIn](https://www.tryordinal.com/blog/how-linkedins-algorithm-works) (Ordinal; incluye declaraciones de producto de LinkedIn sobre links y hashtags)
+- [El algoritmo de LinkedIn en 2026](https://www.giraffesocialmedia.co.uk/the-linkedin-algorithm-decoded-what-actually-gets-you-seen-in-2026/) (Giraffe Social Media; horarios citando a Sprout Social)
+- [360Brew y el perfil](https://www.nit.bg/en/successful-linkedin-profile-in-2026-the-ai-algorithm-(360brew)-nit) (sobre el paper de LinkedIn de enero de 2025 y sus implicancias)
+- [Palabras que delatan a ChatGPT en español](https://www.applesfera.com/curiosidades/te-han-pillado-palabras-frases-que-hacen-evidente-que-utilizaste-chatgpt-lugar-pensar-a-apple) (Applesfera) y [adjetivos y metáforas de IA](https://www.enter.co/?p=553718) (Enter.co)
+- [Límite de caracteres de la nota de invitación](https://getfuzzy.ai/blog/linkedin-connection-request-note-300-characters) (Fuzzy, junio 2026)
+
+## Créditos
+
+Original de Jake Schincariol, [opusjake.ai](https://opusjake.ai), bajo MIT.
+Adaptación al español y skills nuevos: Pablo Guzzi.
+
+## Licencia
+
+MIT. Usalo, cambialo, publicalo.
