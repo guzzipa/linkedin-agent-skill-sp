@@ -1,105 +1,141 @@
 ---
 name: li-post
 description: >-
-  Write a LinkedIn post from a raw idea using 21 proven hook formulas, in the
-  user's own voice, humanized so it does not read as AI. Use whenever the user
-  wants a LinkedIn post, a hook, a draft for the feed, "post about X", "turn
-  this into a LinkedIn post", or asks for hook options. Produces three hook
-  options, one full draft, and a copy-ready block that is never published
-  without an explicit yes.
+  Escribe un post de LinkedIn en español (o inglés) a partir de una idea cruda,
+  con 27 fórmulas de gancho, en la voz y el registro del usuario (voseo, tuteo
+  o usted), humanizado y con el kit de la primera hora. Usalo cuando el usuario
+  quiera un post, un gancho, "escribime un post sobre X", "pasá esto a un post
+  de LinkedIn" o pida opciones de apertura. Da tres ganchos, un borrador
+  completo y un bloque listo para copiar que nunca se publica sin un sí.
 ---
 
 # li-post
 
-Turns one raw idea into a LinkedIn post that sounds like the person who
-posted it.
+Convierte una idea en un post que suena a la persona que lo firma.
 
-## Before you write
+## Antes de escribir
 
-1. Read `~/.claude/linkedin/voice.md` if it exists. That file is the user's
-   voice profile: how they talk, what they never say, who they are talking to.
-   If it does not exist, ask for **three of their own past posts**, infer the
-   voice from those, and write the file. Do not skip this and do not invent a
-   voice. A post in the wrong voice is worse than no post.
-2. Read `hooks.json` in this folder. All 21 formulas, with templates, filled
-   examples, what each is for, and how each one usually gets ruined.
-3. If the idea is thin - "post about AI" - do not pad it. Ask one batched
-   question: what happened, to whom, and what did it cost or return. A post
-   needs one specific true thing. Get it before writing.
+1. **Leé `~/.claude/linkedin/voice.md`.** Es el perfil de voz: cómo habla,
+   qué nunca dice, para quién escribe, su **registro** (voseo, tuteo, usted) y
+   sus **territorios**. Si no existe, pedí tres posts propios, inferí la voz,
+   escribí el archivo y mostráselo. No inventes una voz: un post en la voz
+   equivocada es peor que ningún post.
+2. **Leé `hooks.json`** en esta carpeta: 27 fórmulas con plantilla, ejemplo,
+   para qué sirve y cómo se arruina. Los ejemplos son ilustrativos, nunca datos
+   del usuario.
+3. **Chequeá el territorio.** Si `~/.claude/linkedin/territorio.md` existe, la
+   idea tiene que caer en uno de sus territorios. Si cae afuera, decilo en una
+   línea: un post fuera de tema le enseña al algoritmo que el usuario habla de
+   cualquier cosa. Se puede publicar igual; que sea una decisión, no un
+   accidente.
+4. **Si la idea es flaca** ("un post sobre IA"), no la rellenes. Hacé una sola
+   pregunta agrupada: qué pasó, a quién, y cuánto costó o rindió. Un post
+   necesita una cosa concreta y verdadera.
 
-## The shape
+## La forma
 
-LinkedIn rewards dwell time, saves and comments, in that order. So:
-
-```
-Line 1     the hook. Alone. It has to survive truncation at ~140 chars mobile.
-Line 2     the payoff of line 1, not setup for line 3.
-Body       short paragraphs, 1-3 lines each, blank line between every one.
-           No wall. The white space is the format.
-The turn   one line that reframes what came before.
-Close      one specific question, or one instruction. Never both.
-```
-
-Length: 900-1,300 characters is the working range for a text post. Under 400
-reads as a thought, not a post. Over 2,000 needs to earn every line, and the
-"see more" tap has to be paid for by line 2.
-
-## The loop
-
-**1. Pick three hooks, not one.** Run the idea through `hooks.json` and choose
-the three formulas that genuinely fit it. Different formulas, not three
-variations of one. Show them as three numbered lines and say which you would
-ship and why, in one sentence.
-
-**2. Draft the full post** on the strongest hook.
-
-**3. Humanize it.** Run the draft through `/li-human` before showing it. Every
-post from this skill ships humanized. That is not an optional extra step, it
-is the reason the draft is worth reading.
-
-**4. Print the block.** Copy-ready, in a fenced block, exactly as it should be
-pasted. Then, underneath:
+LinkedIn premia el tiempo de lectura, los comentarios con sustancia, los
+guardados y los envíos por mensaje. El formato que sirve a eso:
 
 ```
-POST READY
-hook:      #17 Time Anchor
-length:    1,140 characters
-humanizer: 6 artefacts stripped, human score 84 PASS
-post at:   Tuesday 8:15am ET (from your plan)
-
-Reply "yes" to log it, or tell me what to change.
+Línea 1    el gancho, sola. Tiene que sobrevivir el corte de ~140 caracteres en
+           el celular, y en español eso es menos texto del que parece.
+           Nombrá el tema con palabras del territorio del usuario.
+Línea 2    el pago de la línea 1, no la preparación de la línea 3.
+Cuerpo     párrafos de 1 a 3 líneas, con blanco entre cada uno. Variá: si cada
+           párrafo es una frase suelta, es broetry y cansa.
+El giro    una línea que reencuadra lo anterior.
+Cierre     una pregunta específica, o una instrucción. Nunca las dos.
 ```
 
-**5. Never publish.** This skill produces text. The user posts it. On "yes",
-append the post to `~/.claude/linkedin/log.md` with the date, the hook used
-and the first line, so `/li-audit` has a history to work from later.
+**Largo:** 1.000 a 1.600 caracteres es el rango de trabajo en español (el
+español ocupa más que el inglés). Menos de 450 se lee como un pensamiento
+suelto. Más de 2.200 tiene que ganarse cada línea.
 
-## Rules that make the difference
+**Guardable o reenviable.** Antes de cerrar el borrador, preguntate qué se
+lleva el lector: un número que va a citar, una lista que va a querer tener, o
+una persona concreta a la que se lo va a mandar. Si no hay nada de eso, el post
+es opinión sin utilidad; puede estar bien, pero sabelo.
 
-- **One idea per post.** If the draft has two, you have two posts. Say so.
-- **Numbers over adjectives.** "$4,200" beats "a lot". If the user has not
-  given you a number, ask for one rather than writing around the hole.
-- **No engagement bait.** "Thoughts?" and "Agree?" are dead. The closing
-  question has to be one only this post could ask.
-- **Three hashtags maximum**, at the bottom, and only if they are real
-  categories someone follows.
-- **No links in the post body.** LinkedIn suppresses posts with outbound
-  links. Put the link in the first comment and say so in the receipt.
-- **Never fabricate.** No invented metrics, clients, revenue figures or
-  outcomes under the user's name, even as a placeholder. If a number is
-  needed and unknown, leave `{{your number}}` in the draft and flag it.
+## El ciclo
 
-## Example
+**1. Tres ganchos, no uno.** Pasá la idea por `hooks.json` y elegí las tres
+fórmulas que encajan de verdad. Fórmulas distintas, no tres variaciones de la
+misma. Mostralas numeradas y decí cuál publicarías y por qué, en una oración.
+
+**2. Borrador completo** con el gancho más fuerte.
+
+**3. Humanizalo** con `/li-human`, usando el registro de `voice.md`. Todo post
+de este skill sale humanizado. Reescribí vos lo que el informe marca.
+
+**4. Si el post es de alto riesgo** (anuncio de trabajo, opinión polémica,
+algo sobre el empleador o un cliente), pasalo por `/li-lectores` antes de
+mostrarlo.
+
+**5. Imprimí el bloque**, listo para pegar, en un bloque de código. Abajo:
 
 ```
-/li-post we built an internal tool that cut proposal time from 5 hours to 20 min
+POST LISTO
+gancho:      #22 Postmortem público
+largo:       1.340 caracteres
+territorio:  riesgo crediticio con IA
+humanizador: 4 artefactos sacados, puntaje 86 PASA (registro: voseo)
+publicar:    martes 8:15 (hora de tu audiencia, desde tu plan)
+
+KIT DE LA PRIMERA HORA
+primer comentario:  el link al template (los links van acá, no en el post)
+objeción probable:  "eso solo pasa en fintech grande"
+  respuesta lista:  "Nos pasó con 40 personas en el equipo. ..."
+objeción probable:  ...
+  respuesta lista:  ...
+bloqueá 60 minutos después de publicar para responder.
+
+Respondé "sí" para registrarlo, o decime qué cambiar.
+```
+
+El **kit de la primera hora** es el agregado de esta versión: la primera hora
+decide hasta dónde viaja el post, y la gente no responde bien en caliente.
+Anticipá dos objeciones o preguntas reales que va a generar el post y dejá las
+respuestas escritas (humanizadas también). Si el post necesita un link, va en
+el primer comentario.
+
+**6. Nunca publiques.** Este skill produce texto; el usuario lo publica. Con
+un "sí", agregá el post a `~/.claude/linkedin/log.md` con fecha, gancho,
+territorio y primera línea, para que `/li-audit` tenga historia.
+
+## Reglas que hacen la diferencia
+
+- **Una idea por post.** Si el borrador tiene dos, son dos posts. Decilo.
+- **Números antes que adjetivos.** Si el usuario no dio un número, pedíselo en
+  vez de escribir alrededor del hueco.
+- **Nada de cebo.** "¿Qué opinan?", "¿Coincidís?" y "Comentá GUÍA" están
+  muertos. La pregunta del cierre tiene que ser una que solo este post podría
+  hacer.
+- **Cero a dos hashtags**, al final, y solo si son categorías que alguien
+  sigue. LinkedIn dijo que ranquea por temas y palabras, no por hashtags.
+- **Sin links en el cuerpo.** Al primer comentario, y avisalo en el bloque.
+  LinkedIn mismo recomienda que el post se sostenga sin el link.
+- **Registro coherente.** Si el usuario vosea, el post vosea de punta a punta,
+  incluidas las preguntas. Mezclar "tenés" con "tienes" es la marca más
+  visible de un texto generado.
+- **Nunca inventes.** Ninguna métrica, cliente, facturación ni resultado bajo
+  el nombre del usuario, ni siquiera de relleno. Si falta un número, dejá
+  `{{tu número}}` en el borrador y marcalo.
+- **Confidencialidad.** Si el post menciona al empleador actual o anterior, a
+  un cliente o datos internos, señalalo en el bloque y preguntá si está
+  aprobado para publicar.
+
+## Ejemplo
+
+```
+/li-post armamos una herramienta interna que bajó el tiempo de una propuesta de 5 horas a 40 minutos
 ```
 
 ```
-HOOKS
-1. #17 Time Anchor    Writing a proposal used to take me 5 hours. It now takes 20 minutes.
-2. #12 Comparison     A $12,000 proposal writer vs a weekend and a template. The weekend won.
-3. #3  Mistake        For two years I charged clients for hours I was wasting on formatting.
+GANCHOS
+1. #17 Ancla de tiempo   Armar una propuesta me llevaba 5 horas. Ahora me lleva 40 minutos.
+2. #12 La comparación    Un redactor de propuestas de USD 12.000 contra un fin de semana y una plantilla. Ganó el fin de semana.
+3. #3  Confesión         Durante dos años les cobré a mis clientes horas que perdía dando formato.
 
-Shipping #17: the ratio is believable and the number is yours.
+Publicaría el #17: la proporción se cree y el número es tuyo.
 ```
