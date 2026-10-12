@@ -1,181 +1,237 @@
 {
-  "version": "1.0",
-  "note": "21 hook formulas. Line 1 of a LinkedIn post is the whole game - the feed truncates at roughly 210 characters on desktop and 140 on mobile before 'see more', so the hook has to survive alone. Every formula here has a template, a filled example, what it is for, and the way it usually gets ruined.",
-  "rules": [
-    "One idea per hook. If it needs a comma splice, it needs two posts.",
-    "Line 2 is not a hook, it is the payoff of line 1. Never waste it on setup.",
-    "No question marks in line 1 unless the question is specific enough that only you could ask it.",
-    "Numbers beat adjectives. '$4,200' beats 'a lot of money' every time.",
-    "If the hook works with any other person's name on it, it is not your hook."
-  ],
-  "hooks": [
-    {
-      "id": 1,
-      "name": "Contrarian Take",
-      "template": "Everyone says {common advice}. After {specific experience}, I think that is wrong.",
-      "example": "Everyone says post daily. I posted 4x a week for a year and beat every daily poster in my niche.",
-      "best_for": "Establishing a point of view. Highest comment rate of any formula.",
-      "trap": "Being contrarian about something nobody believes. The belief has to be genuinely common."
-    },
-    {
-      "id": 2,
-      "name": "Number Reveal",
-      "template": "I {did thing} for {N} {days/weeks}. Here is what actually happened.",
-      "example": "I sent 400 cold DMs in 30 days. 11 replied. 2 became clients.",
-      "best_for": "Experiments, challenges, anything with a countable result.",
-      "trap": "Burying the number. Put it in line 1 or the formula does nothing."
-    },
-    {
-      "id": 3,
-      "name": "Mistake Confession",
-      "template": "{Specific cost} is what {one mistake} cost me.",
-      "example": "$18,000 is what not having a contract cost me last March.",
-      "best_for": "Trust. People forward the posts where you look bad.",
-      "trap": "A fake-humble mistake. 'I care too much' reads as a brag and kills the post."
-    },
-    {
-      "id": 4,
-      "name": "Before / After",
-      "template": "{Time ago} I was {low state}. Today I {high state}. The difference was {one thing}.",
-      "example": "18 months ago I was writing proposals at 2am. Today I send them in 6 minutes. One template did it.",
-      "best_for": "Proof you have travelled the distance your reader wants to travel.",
-      "trap": "Three-part transformations. Name one lever or the reader stops believing you."
-    },
-    {
-      "id": 5,
-      "name": "The List Promise",
-      "template": "{N} things I wish someone had told me before {milestone}.",
-      "example": "7 things I wish someone had told me before I hired my first employee.",
-      "best_for": "Saves. Highest save rate of the 21, which LinkedIn weights heavily.",
-      "trap": "N above 10. The reader does not believe you have 15 good ones, and you do not."
-    },
-    {
-      "id": 6,
-      "name": "Insider Secret",
-      "template": "After {N} years {doing thing}, here is the part nobody puts in the {job posting/course/pitch}.",
-      "example": "After 9 years in agency sales, here is the part nobody puts in the job posting.",
-      "best_for": "Credentialed takes. Works only if the years are real.",
-      "trap": "Promising a secret and delivering common knowledge. The comments will say so."
-    },
-    {
-      "id": 7,
-      "name": "The Callout",
-      "template": "If you are still {doing outdated thing}, stop.",
-      "example": "If you are still writing your LinkedIn posts in the LinkedIn composer, stop.",
-      "best_for": "Short posts with one instruction. Fastest to write of the 21.",
-      "trap": "Calling out something nobody does. Or worse, calling out your own audience with contempt."
-    },
-    {
-      "id": 8,
-      "name": "Question Trap",
-      "template": "{Specific scenario with a real cost}. What do you do?",
-      "example": "Your best client asks for a 40% discount and hints they will leave without it. What do you do?",
-      "best_for": "Comment volume. People answer scenarios, they ignore 'thoughts?'.",
-      "trap": "A question with an obvious right answer. There has to be a real fork."
-    },
-    {
-      "id": 9,
-      "name": "Story Cold Open",
-      "template": "\"{Line of dialogue}\"\\n\\n{Who said it, when, and why it mattered}.",
-      "example": "\"We are going with someone cheaper.\"\\n\\nThat email arrived 40 minutes after I sent my best proposal of the year.",
-      "best_for": "Long-form storytelling posts. Highest dwell time.",
-      "trap": "Dialogue nobody would actually say. Use the real line, including the ugly parts."
-    },
-    {
-      "id": 10,
-      "name": "The Receipt",
-      "template": "{Screenshot or hard number}. {One sentence of context}.",
-      "example": "3 clients, 11 days, zero calls booked. Here is the exact sequence that did it.",
-      "best_for": "Anything you can prove. Pair with an image and reach roughly doubles.",
-      "trap": "A receipt with no story attached. The number opens the door, the story is the room."
-    },
-    {
-      "id": 11,
-      "name": "Myth Bust",
-      "template": "{Popular explanation} is not why {bad outcome} is happening to you.",
-      "example": "The algorithm is not why your posts are dying.",
-      "best_for": "Reframing. Sets you up to deliver the real cause in line 3.",
-      "trap": "Busting the myth and never naming the replacement. Always name it."
-    },
-    {
-      "id": 12,
-      "name": "The Comparison",
-      "template": "{Expensive option} vs {cheap option}. {Surprising verdict}.",
-      "example": "A $12,000 brand agency vs a $20 tool and a weekend. The weekend won.",
-      "best_for": "Tool and process posts. Very high share rate.",
-      "trap": "An unfair comparison. Concede what the expensive option genuinely does better."
-    },
-    {
-      "id": 13,
-      "name": "Permission Slip",
-      "template": "You are allowed to {thing the reader feels guilty about}.",
-      "example": "You are allowed to turn down work that pays well and makes you miserable.",
-      "best_for": "Reach beyond your niche. These travel further than tactical posts.",
-      "trap": "Generic self-care. It has to be specific to the working life of your reader."
-    },
-    {
-      "id": 14,
-      "name": "Pattern Interrupt",
-      "template": "{One word or three-word line, full stop.}",
-      "example": "I got fired.",
-      "best_for": "Stopping the scroll cold. Whitespace does the work.",
-      "trap": "Overuse. Once a month. Every post starting this way reads as a tic."
-    },
-    {
-      "id": 15,
-      "name": "The Warning",
-      "template": "{Common practice} is quietly costing you {specific thing they care about}.",
-      "example": "Your 'quick call to align' is quietly costing you six hours a week.",
-      "best_for": "Problem-aware audiences who have not connected cause to cost.",
-      "trap": "Fear with no exit. Give the fix in the same post or you have just made someone anxious."
-    },
-    {
-      "id": 16,
-      "name": "Good vs Great",
-      "template": "Good {role} {do X}. Great {role} {do Y}.",
-      "example": "Good salespeople answer the question. Great salespeople ask why it was asked.",
-      "best_for": "Quotable one-liners. Screenshot bait.",
-      "trap": "A distinction that is really just 'try harder'. Y has to be a different action, not more effort."
-    },
-    {
-      "id": 17,
-      "name": "Time Anchor",
-      "template": "{Task} used to take me {long time}. It now takes {short time}.",
-      "example": "Writing a week of posts used to take me 5 hours. It now takes 20 minutes.",
-      "best_for": "Tool, system and automation posts. The strongest hook shape for a how-to.",
-      "trap": "An unbelievable ratio. 5 hours to 20 minutes lands. 5 hours to 8 seconds does not."
-    },
-    {
-      "id": 18,
-      "name": "The Unpopular Rule",
-      "template": "I do not {widely accepted practice}. Ever. Here is why.",
-      "example": "I do not take discovery calls. Ever.",
-      "best_for": "Positioning. Attracts the right clients by repelling the wrong ones.",
-      "trap": "A rule you break constantly. Someone in the comments will know."
-    },
-    {
-      "id": 19,
-      "name": "Curiosity Gap",
-      "template": "The {superlative} {thing} I ever {verb} {broke the obvious rule}.",
-      "example": "The best hire I ever made failed the interview.",
-      "best_for": "Openers that force the 'see more' tap.",
-      "trap": "A gap you never close. Pay it off by line 4 or you have written clickbait."
-    },
-    {
-      "id": 20,
-      "name": "The Walk-Away",
-      "template": "I {fired/quit/deleted/cancelled} {valuable thing}. {Result}.",
-      "example": "I fired my highest-paying client in January. Revenue is up 30%.",
-      "best_for": "Values posts with a business result attached. Very high engagement.",
-      "trap": "Walking away with no cost. Name what it actually cost you or it reads as theatre."
-    },
-    {
-      "id": 21,
-      "name": "The Direct Value",
-      "template": "Here is the exact {artifact} I used to {specific outcome}. Steal it.",
-      "example": "Here is the exact 4-line email I used to reopen 3 dead deals. Steal it.",
-      "best_for": "Lead magnets and comment-for-link posts. Highest conversion of the 21.",
-      "trap": "Making them ask for something you could have just posted. Give the artifact away in the post."
-    }
-  ]
+ "version": "1.0-es",
+ "nota": "27 fórmulas de gancho en español (21 adaptadas del original + 6 nuevas). La línea 1 es todo: el feed corta en unos 140 caracteres en el celular antes de \"ver más\", y el español ocupa más que el inglés, así que el gancho tiene que ser más corto que su versión en inglés. Cada fórmula tiene plantilla, ejemplo, para qué sirve y cómo se arruina. Los ejemplos son ilustrativos: nunca los uses como datos del usuario.",
+ "reglas": [
+  "Una idea por gancho. Si necesita una coma para unir dos ideas, son dos posts.",
+  "La línea 2 no es otro gancho: es el pago de la línea 1. No la gastes en preparar.",
+  "Nada de signos de pregunta en la línea 1 salvo que la pregunta sea tan específica que solo vos podrías hacerla.",
+  "Números antes que adjetivos. \"USD 4.200\" le gana a \"un montón de plata\" siempre.",
+  "Si el gancho funciona con el nombre de otra persona, no es tu gancho.",
+  "Nombrá el tema en la línea 1 con las palabras de tu territorio. El ranking lee el texto y lo cruza con tu perfil.",
+  "Escribí los números como en tu país (USD 18.000 en Argentina, US$18,000 en México) y mantenelo."
+ ],
+ "hooks": [
+  {
+   "id": 1,
+   "nombre": "Contracorriente",
+   "plantilla": "Todos dicen {consejo común}. Después de {experiencia concreta}, creo que está mal.",
+   "ejemplo": "Todos dicen que hay que publicar todos los días. Publiqué cuatro veces por semana durante un año y le gané a todos los que publicaban a diario en mi nicho.",
+   "sirve_para": "Fijar una postura. Es la fórmula con más comentarios.",
+   "trampa": "Ir contra algo que nadie cree. La creencia tiene que ser común de verdad en tu audiencia, no en Twitter."
+  },
+  {
+   "id": 2,
+   "nombre": "Número revelado",
+   "plantilla": "Hice {cosa} durante {N} {días/semanas}. Esto pasó.",
+   "ejemplo": "Mandé 400 mensajes en frío en 30 días. Respondieron 11. Dos se hicieron clientes.",
+   "sirve_para": "Experimentos, desafíos, cualquier cosa con un resultado contable.",
+   "trampa": "Esconder el número. Va en la línea 1 o la fórmula no hace nada."
+  },
+  {
+   "id": 3,
+   "nombre": "Confesión del error",
+   "plantilla": "{Costo concreto} es lo que me costó {un error}.",
+   "ejemplo": "USD 18.000 es lo que me costó no tener contrato firmado en marzo.",
+   "sirve_para": "Confianza. La gente reenvía los posts donde quedás mal.",
+   "trampa": "El error falso-humilde. \"Me involucro demasiado\" se lee como alarde y mata el post."
+  },
+  {
+   "id": 4,
+   "nombre": "Antes / después",
+   "plantilla": "Hace {tiempo} {estado bajo}. Hoy {estado alto}. La diferencia fue {una sola cosa}.",
+   "ejemplo": "Hace 18 meses escribía propuestas a las 2 de la mañana. Hoy las mando en 6 minutos. Lo cambió una plantilla.",
+   "sirve_para": "Probar que ya recorriste el camino que tu lector quiere recorrer.",
+   "trampa": "Transformaciones de tres partes. Nombrá una palanca o el lector deja de creerte."
+  },
+  {
+   "id": 5,
+   "nombre": "La lista prometida",
+   "plantilla": "{N} cosas que me hubiera gustado saber antes de {hito}.",
+   "ejemplo": "7 cosas que me hubiera gustado saber antes de contratar a mi primer empleado.",
+   "sirve_para": "Guardados. Es la fórmula con más \"guardar\", y los guardados ahora se ven en analytics y pesan en la distribución.",
+   "trampa": "N mayor a 10. Nadie cree que tengas 15 buenas, y no las tenés. En español, además, cada ítem ocupa más."
+  },
+  {
+   "id": 6,
+   "nombre": "Lo que no está en el aviso",
+   "plantilla": "Después de {N} años {haciendo cosa}, esta es la parte que nadie pone en {el aviso de trabajo/el curso/la propuesta}.",
+   "ejemplo": "Después de 9 años vendiendo para agencias, esta es la parte que nadie pone en el aviso de trabajo.",
+   "sirve_para": "Opiniones con credencial. Solo funciona si los años son reales.",
+   "trampa": "Prometer un secreto y entregar algo que todos saben. Los comentarios te lo van a decir."
+  },
+  {
+   "id": 7,
+   "nombre": "El llamado de atención",
+   "plantilla": "Si todavía {hacés algo desactualizado}, pará.",
+   "ejemplo": "Si todavía escribís tus posts directo en el editor de LinkedIn, pará.",
+   "sirve_para": "Posts cortos con una sola instrucción. La más rápida de escribir.",
+   "trampa": "Señalar algo que nadie hace. O peor, tratar a tu propia audiencia con desprecio."
+  },
+  {
+   "id": 8,
+   "nombre": "La pregunta trampa",
+   "plantilla": "{Escenario concreto con un costo real}. ¿Qué hacés?",
+   "ejemplo": "Tu mejor cliente te pide 40% de descuento y da a entender que se va si no se lo das. ¿Qué hacés?",
+   "sirve_para": "Volumen de comentarios. La gente responde escenarios; ignora \"¿qué opinan?\".",
+   "trampa": "Una pregunta con respuesta obvia. Tiene que haber una bifurcación real."
+  },
+  {
+   "id": 9,
+   "nombre": "Arranque en frío",
+   "plantilla": "\"{Una línea de diálogo}\"\n\n{Quién la dijo, cuándo y por qué importó}.",
+   "ejemplo": "\"Vamos con alguien más barato.\"\n\nEse mail llegó 40 minutos después de que mandé la mejor propuesta del año.",
+   "sirve_para": "Historias largas. Es la que más tiempo de lectura genera, y el tiempo de lectura es la señal que más pesa.",
+   "trampa": "Diálogo que nadie diría. Usá la frase real, con lo feo incluido."
+  },
+  {
+   "id": 10,
+   "nombre": "El comprobante",
+   "plantilla": "{Captura o número duro}. {Una oración de contexto}.",
+   "ejemplo": "3 clientes, 11 días, cero llamadas agendadas. Esta es la secuencia exacta.",
+   "sirve_para": "Todo lo que puedas probar. Con una imagen del dato, mejor.",
+   "trampa": "Un comprobante sin historia. El número abre la puerta; la historia es la habitación."
+  },
+  {
+   "id": 11,
+   "nombre": "Mito derribado",
+   "plantilla": "{Explicación popular} no es la razón por la que {resultado malo}.",
+   "ejemplo": "El algoritmo no es la razón por la que tus posts no despegan.",
+   "sirve_para": "Reencuadrar. Te deja servido para dar la causa real en la línea 3.",
+   "trampa": "Derribar el mito y nunca nombrar el reemplazo. Nombralo siempre."
+  },
+  {
+   "id": 12,
+   "nombre": "La comparación",
+   "plantilla": "{Opción cara} contra {opción barata}. {Veredicto sorprendente}.",
+   "ejemplo": "Una agencia de USD 12.000 contra una herramienta de USD 20 y un fin de semana. Ganó el fin de semana.",
+   "sirve_para": "Posts de herramientas y procesos. Se comparten mucho.",
+   "trampa": "Una comparación injusta. Concedé lo que la opción cara hace mejor de verdad."
+  },
+  {
+   "id": 13,
+   "nombre": "El permiso",
+   "plantilla": "Tenés permiso para {cosa por la que tu lector se siente culpable}.",
+   "ejemplo": "Tenés permiso para rechazar un trabajo que paga bien y te hace infeliz.",
+   "sirve_para": "Llegar más allá de tu nicho. Viajan más que los posts tácticos.",
+   "trampa": "El autocuidado genérico. Tiene que ser específico de la vida laboral de tu lector."
+  },
+  {
+   "id": 14,
+   "nombre": "Interrupción",
+   "plantilla": "{Una línea de una a tres palabras, punto.}",
+   "ejemplo": "Me echaron.",
+   "sirve_para": "Frenar el scroll en seco. El blanco hace el trabajo.",
+   "trampa": "Abusar. Una vez por mes. Si todos tus posts empiezan así, es un tic."
+  },
+  {
+   "id": 15,
+   "nombre": "La advertencia",
+   "plantilla": "{Práctica común} te está costando {algo concreto que le importa}.",
+   "ejemplo": "Tu \"llamadita para alinear\" te está costando seis horas por semana.",
+   "sirve_para": "Audiencias que tienen el problema pero no conectaron la causa con el costo.",
+   "trampa": "Miedo sin salida. Dá la solución en el mismo post o solo dejaste a alguien ansioso."
+  },
+  {
+   "id": 16,
+   "nombre": "Bueno contra excelente",
+   "plantilla": "Un buen {rol} {hace X}. Uno excelente {hace Y}.",
+   "ejemplo": "Un buen vendedor responde la pregunta. Uno excelente pregunta por qué se la hicieron.",
+   "sirve_para": "Frases citables, que se capturan.",
+   "trampa": "Una distinción que en realidad es \"esforzate más\". Y tiene que ser otra acción, no más esfuerzo."
+  },
+  {
+   "id": 17,
+   "nombre": "Ancla de tiempo",
+   "plantilla": "{Tarea} antes me llevaba {mucho tiempo}. Ahora me lleva {poco tiempo}.",
+   "ejemplo": "Escribir una semana de posts me llevaba 5 horas. Ahora me lleva 40 minutos.",
+   "sirve_para": "Posts de herramientas, sistemas y automatización. La mejor forma para un \"cómo se hace\".",
+   "trampa": "Una proporción increíble. De 5 horas a 40 minutos se cree. De 5 horas a 8 segundos, no."
+  },
+  {
+   "id": 18,
+   "nombre": "La regla impopular",
+   "plantilla": "No {práctica aceptada}. Nunca. Por esto.",
+   "ejemplo": "No hago llamadas de descubrimiento. Nunca.",
+   "sirve_para": "Posicionamiento. Atrae a los clientes correctos espantando a los otros.",
+   "trampa": "Una regla que rompés seguido. Alguien en los comentarios lo va a saber."
+  },
+  {
+   "id": 19,
+   "nombre": "Hueco de curiosidad",
+   "plantilla": "El {superlativo} {cosa} que {verbo} {rompía la regla obvia}.",
+   "ejemplo": "La mejor contratación que hice reprobó la entrevista.",
+   "sirve_para": "Aperturas que obligan a tocar \"ver más\".",
+   "trampa": "Un hueco que nunca cerrás. Pagalo antes de la línea 4 o escribiste clickbait."
+  },
+  {
+   "id": 20,
+   "nombre": "Me fui",
+   "plantilla": "{Despedí/renuncié/borré/cancelé} {algo valioso}. {Resultado}.",
+   "ejemplo": "Dejé a mi cliente que más pagaba en enero. La facturación subió 30%.",
+   "sirve_para": "Posts de valores con un resultado de negocio. Muy alta interacción.",
+   "trampa": "Irse sin costo. Nombrá lo que te costó de verdad o se lee como teatro."
+  },
+  {
+   "id": 21,
+   "nombre": "Valor directo",
+   "plantilla": "Este es el {artefacto} exacto que usé para {resultado concreto}. Llevátelo.",
+   "ejemplo": "Este es el mail de 4 líneas que usé para reabrir 3 negocios muertos. Llevátelo.",
+   "sirve_para": "Recursos que la gente guarda y reenvía por mensaje (los \"envíos\", que ahora se miden).",
+   "trampa": "Hacer que lo pidan en comentarios cuando lo podías publicar. Dalo en el post o en el primer comentario. \"Comentá GUÍA\" es el cebo más reconocible que hay."
+  },
+  {
+   "id": 22,
+   "nombre": "Postmortem público",
+   "plantilla": "Incidente: {qué falló}.\nImpacto: {número}.\nCausa raíz: {la de verdad, no la cómoda}.\nQué cambiamos: {una cosa}.",
+   "ejemplo": "Incidente: el modelo de riesgo aprobó 300 créditos que no debía.\nImpacto: USD 41.000 en mora en 6 semanas.\nCausa raíz: nadie miraba la distribución de entrada, solo el AUC.\nQué cambiamos: una alarma de drift que suena antes que el dashboard.",
+   "sirve_para": "Líderes técnicos. Toma el formato que los equipos de ingeniería usan puertas adentro y lo saca afuera. Casi nadie lo usa en LinkedIn y genera confianza inmediata.",
+   "trampa": "Publicar un incidente que expone a alguien de tu equipo o a un cliente. La causa raíz es un proceso, nunca una persona. Chequeá confidencialidad antes.",
+   "nuevo": true
+  },
+  {
+   "id": 23,
+   "nombre": "Predicción con vencimiento",
+   "plantilla": "Apuesto a que para {fecha concreta} {predicción que se puede comprobar}. Si me equivoco, lo escribo acá.",
+   "ejemplo": "Apuesto a que para junio de 2027 la mitad de los bancos medianos de la región va a tener un agente de IA atendiendo reclamos de primer nivel. Si me equivoco, lo escribo acá.",
+   "sirve_para": "Autoridad que se construye en el tiempo. Cuando volvés a la predicción (acertada o no), tenés un segundo post y una prueba de que pensás en serio.",
+   "trampa": "Predicciones vagas (\"la IA va a cambiar todo\") o sin fecha. Si no se puede comprobar, no es una apuesta. Anotala en log.md para volver.",
+   "nuevo": true
+  },
+  {
+   "id": 24,
+   "nombre": "Ponerle nombre",
+   "plantilla": "Hay un patrón en {contexto} que no tiene nombre. Le digo {nombre corto}.",
+   "ejemplo": "Hay un patrón en los equipos de datos que no tiene nombre. Le digo \"el dashboard huérfano\": se construye para una reunión y nadie lo vuelve a abrir.",
+   "sirve_para": "Volverte la referencia de una idea. Si el nombre prende, otros lo usan y te citan. Es la forma más barata de liderazgo de pensamiento.",
+   "trampa": "Bautizar algo que ya tiene nombre conocido, o un nombre que necesita explicación larga. Dos o tres palabras, que se entiendan solas.",
+   "nuevo": true
+  },
+  {
+   "id": 25,
+   "nombre": "Me contradigo",
+   "plantilla": "En {año} escribí que {posición}. Hoy pienso lo contrario.",
+   "ejemplo": "En 2023 escribí que todo equipo de datos tenía que reportar al CFO. Hoy pienso lo contrario.",
+   "sirve_para": "Credibilidad. Cambiar de opinión con razones es raro en LinkedIn y se lee como honestidad intelectual.",
+   "trampa": "Cambiar de opinión sin decir qué dato o experiencia te hizo cambiar. Esa es la mitad del post.",
+   "nuevo": true
+  },
+  {
+   "id": 26,
+   "nombre": "La pregunta de entrevista",
+   "plantilla": "La pregunta que le hago a todo candidato a {rol}: \"{pregunta}\". Casi nadie {la respuesta común}.",
+   "ejemplo": "La pregunta que le hago a todo candidato a analista: \"¿Qué número de tu último trabajo te parecía mal calculado?\". Casi nadie tiene uno.",
+   "sirve_para": "Líderes que contratan. La gente responde la pregunta en los comentarios, y los candidatos la guardan.",
+   "trampa": "Una pregunta con truco o que humilla. Tiene que revelar algo real del oficio, no del candidato.",
+   "nuevo": true
+  },
+  {
+   "id": 27,
+   "nombre": "Contraste regional",
+   "plantilla": "{Dato de tu operación en LatAm} contra {referencia de EE.UU. o Europa}. La diferencia explica {cosa}.",
+   "ejemplo": "En nuestra base, el 62% de los usuarios abre la app antes de las 9 de la mañana. En los benchmarks de EE.UU. que todos citan es el 30%. Por eso nuestras notificaciones van al revés del manual.",
+   "sirve_para": "Autoridad local. Casi todo el contenido de LinkedIn usa datos de EE.UU.; un dato propio de la región es escaso y por eso valioso, también para audiencias globales.",
+   "trampa": "Inventar o redondear el dato propio, o publicar algo confidencial. Si no podés dar el número, da el orden de magnitud y decilo.",
+   "nuevo": true
+  }
+ ]
 }

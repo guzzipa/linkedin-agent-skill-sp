@@ -812,6 +812,12 @@
    "fix": "Un post no necesita párrafo de conclusión."
   },
   {
+   "id": "apertura-comentario",
+   "regex": "(?im)^\\s*(?:excelente (?:post|aporte|reflexión|publicación)|gran (?:post|aporte|reflexión)|muy buen (?:punto|post|aporte)|totalmente de acuerdo|me encant[óo]|qué buena reflexión|gracias por compartir|coincido (?:100|totalmente))",
+   "name": "Apertura de comentario invisible (\"Excelente post\", \"Totalmente de acuerdo\")",
+   "fix": "Nadie lee esas palabras. Empezá por tu dato, tu caso o tu desacuerdo."
+  },
+  {
    "id": "como-ia",
    "regex": "(?i)\\bcomo (?:un )?modelo de lenguaje\\b|\\bcomo (?:una )?(?:ia|inteligencia artificial),? no (?:tengo|puedo)\\b",
    "name": "Autorreferencia del modelo",
