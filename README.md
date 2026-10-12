@@ -27,7 +27,7 @@ adapta los once skills a LatAm, y suma tres nuevos.
 | Chequeo de voz | contracciones inglesas | persona gramatical, primera persona del pasado, oralidad y registro |
 | Ganchos | 21 | 27: los 21 adaptados con ejemplos de la región + 6 nuevos |
 | Skills | 11 | 14: suma `li-territorio`, `li-lectores`, `li-bilingue` |
-| Tests | no | `tests/run_tests.py`, 11 casos |
+| Tests | no | `tests/run_tests.py`, 12 casos |
 
 ## Instalar
 
@@ -132,7 +132,7 @@ Un post escrito por una persona, en los mismos tests:
 ```
 
 ```bash
-python3 tests/run_tests.py   # 11/11 ok
+python3 tests/run_tests.py   # 12/12 ok
 ```
 
 ## La letra chica, que es la parte honesta
