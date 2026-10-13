@@ -72,7 +72,33 @@ Y las estructuras, que son la huella más fuerte:
 - **Mezcla de registros**: "tenés" y "tienes" en el mismo post. Es la marca de
   IA más clara en un texto rioplatense, porque los modelos tutean por defecto.
   Con `--registro voseo` también marca formas de España ("tenéis", "vale,").
+- **Mezcla de vocabulario regional**: "ordenador" y "celular" en el mismo
+  post. Con `--registro espana` marca palabras de LatAm, y con `voseo`, las de
+  España.
 - Largo de oraciones uniforme.
+
+Y las marcas del español de traducción, que son las que más delatan un texto
+generado en inglés y pasado al español:
+
+- **Gerundio de posterioridad**: "Migramos el sistema, logrando bajar los
+  costos". Va en dos oraciones.
+- **Pasiva con "por"** repetida: "fue desarrollado por el equipo". El español
+  prefiere la activa.
+- **Dos adverbios en -mente** en la misma oración.
+- **Posesivo calcado**: "levanté mi mano" en vez de "levanté la mano".
+- **Mayúscula en meses, días e idiomas** a mitad de oración: "en Enero", "en Español".
+- **Andamiaje escolar**: "en primer lugar... en segundo lugar".
+- Calcos de frase: "en una base diaria", "tomar ventaja de", "en términos
+  de", "a nivel de equipo", "agregar valor". "Al día de hoy" y "es por ello
+  que" se reemplazan solos.
+
+**Lo que no se toca**: la raya de diálogo (`—Nos vamos —me dijo.`, o después
+de dos puntos) es ortografía española correcta, así que `humanize.py` la deja y
+`detect.py` no la cuenta como huella. Solo se cambia la raya usada a la
+inglesa, como inciso con espacios. Tampoco se agregan ni se sacan `¿` y `¡`.
+
+Para escribir con las palabras, los números y la moneda de la región del
+usuario, leé `regiones.md` en esta carpeta.
 
 Reescribí cada línea marcada a mano, manteniendo el sentido, y volvé a correr
 `detect.py`. Esa es la parte que lleva de REVISAR a PASA, y es la que un

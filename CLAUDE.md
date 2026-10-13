@@ -12,6 +12,7 @@ Adaptación al español y LatAm de `Jakeschincariol/linkedin-agent-skill` (MIT).
   `lexicons/es.json` y `lexicons/en.json`, y el idioma se detecta solo.
 - `skills/li-post/hooks.json`: 27 fórmulas de gancho (de la 22 a la 27 son nuevas).
 - `skills/li-profile/rubric.json`: 13 ítems que suman 100.
+- `skills/li-human/regiones.md`: vocabulario, números, moneda y fechas por región.
 - `templates/voice.md`: perfil de voz. El campo Registro (voseo, tuteo,
   usted, neutro o espana) lo usan todos los skills.
 - `tests/run_tests.py`: tests sin dependencias, con textos en `tests/fixtures/`.
@@ -37,5 +38,5 @@ Adaptación al español y LatAm de `Jakeschincariol/linkedin-agent-skill` (MIT).
 ## Pendientes posibles
 
 - Probar el léxico con posts reales del autor y ajustar los falsos positivos.
-- Variantes regionales del léxico (México, España).
+- Ampliar `vocabulario_regional` y `oralidad` con posts reales de cada región.
 - Evaluar `li-lectores` con posts ya publicados, contrastando con `li-audit`.

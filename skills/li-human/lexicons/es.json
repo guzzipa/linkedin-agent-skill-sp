@@ -427,6 +427,62 @@
    "replace": null,
    "family": "anuncios",
    "label": "con mucha humildad"
+  },
+  {
+   "pattern": "es por ello que",
+   "replace": "por eso",
+   "family": "conectores",
+   "label": "es por ello que",
+   "nota": "Conector de informe. 'Por eso' dice lo mismo."
+  },
+  {
+   "pattern": "(?:al|en el) día de hoy",
+   "replace": "hoy",
+   "family": "relleno",
+   "label": "al día de hoy / en el día de hoy",
+   "nota": "Relleno: 'hoy' alcanza."
+  },
+  {
+   "pattern": "en una base (?:diaria|semanal|mensual|regular|anual)",
+   "replace": null,
+   "family": "calcos",
+   "label": "en una base diaria",
+   "nota": "Calco de 'on a daily basis'. Decí 'a diario', 'cada semana', 'todos los meses'."
+  },
+  {
+   "pattern": "(?:agreg|aport|sum)(?:ar|a|an|amos|ando|ó|aron) valor",
+   "replace": null,
+   "family": "muletillas",
+   "label": "agregar / aportar valor",
+   "nota": "Muletilla corporativa. Decí qué aporta: tiempo, plata, un error menos."
+  },
+  {
+   "pattern": "tom(?:ar|a|an|amos|ando|ó|aron|é) ventaja de",
+   "replace": null,
+   "family": "calcos",
+   "label": "tomar ventaja de",
+   "nota": "Calco de 'take advantage of'. En español es 'aprovechar'."
+  },
+  {
+   "pattern": "en términos de",
+   "replace": null,
+   "family": "calcos",
+   "label": "en términos de",
+   "nota": "Calco de 'in terms of'. Casi siempre sobra o alcanza con 'en'."
+  },
+  {
+   "pattern": "a nivel (?:de )?(?:equipo|empresa|negocio|personal|profesional|organizacional|organización|país|global|regional|usuario)",
+   "replace": null,
+   "family": "muletillas",
+   "label": "a nivel de equipo / empresa",
+   "nota": "Muletilla. 'En el equipo', 'en la empresa', 'en lo personal'."
+  },
+  {
+   "pattern": "poner en valor",
+   "replace": null,
+   "family": "muletillas",
+   "label": "poner en valor",
+   "nota": "Jerga de informe. Decí 'mostrar', 'destacar' o qué se hizo."
   }
  ],
  "words": [
@@ -842,6 +898,43 @@
    "regex": "\\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+ (?:De|Del|La|Las|Los|El|En|Con|Para|Por|Tu|Tus|Su|Sus|Y|Que|Un|Una|Al) [A-ZÁÉÍÓÚÑ][a-záéíóúñ]+",
    "name": "Mayúsculas de título en inglés (\"Cómo Escalar Tu Equipo De Datos\")",
    "fix": "En español solo va mayúscula la primera palabra. Es un calco directo del inglés."
+  },
+  {
+   "id": "gerundio-posterioridad",
+   "regex": "(?i),\\s+(?:logrando|generando|permitiendo|consiguiendo|aumentando|reduciendo|mejorando|posicionando|convirtiendo|impulsando|garantizando|asegurando|alcanzando|obteniendo|aportando|resultando|dando lugar|lo que permitió|lo cual permitió)\\b",
+   "name": "Gerundio de posterioridad (\"..., logrando un aumento\")",
+   "fix": "Es la marca más típica del español de IA y de traducción. Cortá en dos: \"Cambiamos el proceso. Las ventas subieron 30%.\""
+  },
+  {
+   "id": "pasiva-por",
+   "min": 2,
+   "regex": "(?i)\\b(?:fue|fueron|ha sido|han sido|había sido|habían sido|será|serán)\\s+(?:\\w+mente\\s+)?\\w+(?:ado|ada|ados|adas|ido|ida|idos|idas|cho|cha|chos|chas|to|ta|tos|tas)\\s+por\\b",
+   "name": "Pasiva con \"por\" repetida (\"fue desarrollado por\")",
+   "fix": "El español prefiere la activa: \"lo desarrolló el equipo\", \"lo armamos nosotros\"."
+  },
+  {
+   "id": "adverbios-mente",
+   "regex": "(?i)\\b\\w{4,}mente\\b[^.!?\\n]{0,50}\\b\\w{4,}mente\\b",
+   "name": "Dos adverbios en -mente en la misma oración",
+   "fix": "Sacá uno. Si son necesarios los dos, la RAE pide el primero sin -mente: \"clara y rápidamente\"."
+  },
+  {
+   "id": "posesivo-calco",
+   "regex": "(?i)\\b(?:levant|alc|abr|cerr|lav|cruz|apret|mov|tap)\\w*\\s+(?:mi|mis|tu|tus|su|sus|nuestr[oa]s?)\\s+(?:mano|manos|ojos|brazo|brazos|cabeza|puño|puños|dedos|piernas|boca|oídos)\\b",
+   "name": "Posesivo calcado del inglés (\"levanté mi mano\")",
+   "fix": "En español va el artículo: \"levanté la mano\", \"abrí los ojos\"."
+  },
+  {
+   "id": "mayuscula-calco",
+   "regex": "(?<=[a-záéíóúñ0-9,] )(?:Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Domingo|Enero|Febrero|Marzo|Junio|Julio|Agosto|Septiembre|Setiembre|Octubre|Noviembre|Diciembre|Español|Inglés|Portugués|Francés|Alemán|Italiano)\\b",
+   "name": "Mayúscula del inglés en día, mes o idioma (\"en Enero\", \"en Español\")",
+   "fix": "En español van en minúscula: \"en enero\", \"el lunes\", \"en español\"."
+  },
+  {
+   "id": "andamiaje",
+   "regex": "(?is)\\ben primer lugar\\b.{0,600}?\\ben segundo lugar\\b",
+   "name": "Andamiaje de redacción escolar (\"en primer lugar... en segundo lugar\")",
+   "fix": "En un post no hace falta numerar con palabras. Usá una lista o contalo en orden."
   }
  ],
  "registros": {
@@ -937,23 +1030,106 @@
    "usted"
   ]
  },
- "oralidad": [
-  "la verdad",
-  "ojo",
-  "o sea",
-  "bueno,",
-  "igual",
-  "posta",
-  "che",
-  "obvio",
-  "un montón",
-  "en fin",
-  "ni hablar",
-  "tal cual",
-  "ponele",
-  "de una",
-  "nada,",
-  "ya sé",
-  "spoiler de verdad"
- ]
+ "oralidad": {
+  "general": [
+   "la verdad",
+   "ojo",
+   "o sea",
+   "bueno,",
+   "igual",
+   "un montón",
+   "en fin",
+   "ni hablar",
+   "tal cual",
+   "ya sé",
+   "obvio",
+   "nada,",
+   "a ver",
+   "ni idea",
+   "spoiler de verdad"
+  ],
+  "rioplatense": [
+   "posta",
+   "che",
+   "ponele",
+   "de una",
+   "ni ahí",
+   "un toque",
+   "laburo",
+   "qué sé yo",
+   "re"
+  ],
+  "mexico": [
+   "la neta",
+   "neta",
+   "ahorita",
+   "chido",
+   "órale",
+   "qué onda",
+   "no manches",
+   "chamba",
+   "un chorro",
+   "fíjate que"
+  ],
+  "espana": [
+   "vale,",
+   "en plan",
+   "mola",
+   "venga,",
+   "currar",
+   "curro",
+   "flipé",
+   "flipante",
+   "pues nada",
+   "guay"
+  ],
+  "chile": [
+   "cachai",
+   "al tiro",
+   "bacán",
+   "fome",
+   "po"
+  ],
+  "andina_caribe": [
+   "chévere",
+   "bacano",
+   "parce",
+   "pana",
+   "qué chimba"
+  ]
+ },
+ "vocabulario_regional": {
+  "nota": "Palabras que delatan una región. Mezclar las de España con las de LatAm en el mismo texto es típico de un modelo o de una traducción.",
+  "espana": [
+   "ordenador",
+   "ordenadores",
+   "coche",
+   "coches",
+   "zumo",
+   "gafas",
+   "vale,",
+   "móvil",
+   "móviles",
+   "vosotros",
+   "currar",
+   "curro",
+   "guay"
+  ],
+  "latam": [
+   "computadora",
+   "computadoras",
+   "celular",
+   "celulares",
+   "carro",
+   "carros",
+   "jugo",
+   "anteojos",
+   "lentes",
+   "departamento",
+   "plata",
+   "laburo",
+   "chamba",
+   "ahorita"
+  ]
+ }
 }

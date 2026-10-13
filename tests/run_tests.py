@@ -149,6 +149,57 @@ def aperturas_y_contrastes_comunes():
     assert "no-es-solo" in ids(res["report"])
 
 
+@test
+def textos_de_otras_regiones_sin_falsos_positivos():
+    for fixture, registro in (("humano_mx.txt", "tuteo"), ("humano_esp.txt", "espana"),
+                              ("dialogo_es.txt", "voseo")):
+        rep = humanize(fixture, "--registro", registro)["report"]
+        assert not rep["lexical_flags"] and not rep["structures"], (fixture, rep)
+        assert detect(fixture, "--registro", registro)["verdict"] == "PASA", fixture
+
+
+@test
+def oralidad_de_cualquier_region_suma():
+    # "la neta", "ahorita", "chamba": un texto mexicano no pierde voz por no ser rioplatense
+    assert detect("humano_mx.txt")["checks"]["VOZ"]["score"] >= 90
+
+
+@test
+def raya_de_dialogo_se_respeta():
+    text = ("—Nos vamos con alguien más barato —me dijo.\n"
+            "Le contesté: —Perfecto.\n"
+            "La clave — y esto importa — es otra.\n")
+    out = run("humanize.py", "-", stdin=text).stdout
+    assert out.startswith("—Nos vamos con alguien más barato —me dijo."), out
+    assert "Le contesté: —Perfecto." in out, out
+    assert "La clave, y esto importa, es otra." in out, out
+    assert detect("dialogo_es.txt")["checks"]["HUELLA"]["score"] == 100
+
+
+@test
+def marcas_del_espanol_de_traduccion():
+    text = ("En primer lugar, migramos el sistema en Enero, logrando bajar los costos.\n"
+            "El proyecto fue desarrollado por el equipo y fue aprobado por la dirección.\n"
+            "Lo hicimos rápidamente y eficientemente. Levanté mi mano en la reunión.\n"
+            "En segundo lugar, al día de hoy es por ello que medimos en una base diaria.\n")
+    res = json.loads(run("humanize.py", "-", "--json", stdin=text).stdout)
+    found = ids(res["report"])
+    for need in ("gerundio-posterioridad", "pasiva-por", "adverbios-mente", "posesivo-calco",
+                 "mayuscula-calco", "andamiaje"):
+        assert need in found, f"falta {need}: {found}"
+    assert "hoy por eso medimos" in res["text"].lower(), res["text"]
+    assert any("base diaria" in f["find"] for f in res["report"]["lexical_flags"])
+
+
+@test
+def vocabulario_regional():
+    mezcla = "Dejé el ordenador en la oficina y contesté todo desde el celular, como siempre.\n"
+    assert "vocabulario-mezcla" in ids(json.loads(run("humanize.py", "-", "--json", stdin=mezcla).stdout)["report"])
+    latam = "Contesté todo desde el celular, como siempre.\n"
+    rep = json.loads(run("humanize.py", "-", "--json", "--registro", "espana", stdin=latam).stdout)["report"]
+    assert "vocabulario-latam" in ids(rep), rep
+
+
 def main():
     failed = 0
     for fn in TESTS:

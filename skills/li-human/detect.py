@@ -48,7 +48,10 @@ EN_CONTRACTIONS = re.compile(r"\b\w+'(?:s|t|re|ve|ll|d|m)\b", re.IGNORECASE)
 EN_PRONOUNS = re.compile(r"\b(i|me|my|mine|we|us|our|you|your)\b", re.IGNORECASE)
 ES_PERSONA = re.compile(
     r"(?<!\w)(yo|me|mi|mis|conmigo|nosotros|nosotras|nos|nuestro|nuestra|nuestros|nuestras|"
-    r"vos|te|tu|tus|ti|tú|usted|ustedes|les)(?!\w)", re.IGNORECASE)
+    r"vos|te|tu|tus|ti|tú|usted|ustedes|les|vosotros|vosotras|os|vuestro|vuestra|vuestros|vuestras)(?!\w)",
+    re.IGNORECASE)
+# Segunda del plural de España ("estáis", "tenéis"): también es hablarle a alguien.
+ES_VOSOTROS = re.compile(r"(?<!\w)\w{2,}(?:áis|éis)(?!\w)", re.IGNORECASE)
 # Verbos en primera persona del pretérito, que es como se cuenta algo que te pasó.
 ES_PRIMERA = re.compile(r"(?<!\w)\w{3,}(?:é|í|amos|imos)(?!\w)", re.IGNORECASE)
 ES_NO_VERBO = {"café", "bebé", "comité", "puré", "chalé", "consomé", "entonces", "algunos",
@@ -86,6 +89,8 @@ REGISTRO_CHOQUES = {
     "voseo": ["tuteo", "vosotros"], "tuteo": ["voseo", "vosotros"],
     "usted": ["voseo", "tuteo", "vosotros"], "neutro": ["vosotros"], "espana": ["voseo"],
 }
+VOCAB_CHOQUES = {"espana": "latam", "voseo": "espana"}
+DIALOGO = re.compile(r"^\s*—\S|:\s+—\S")
 
 
 def detect_lang(text):
@@ -182,7 +187,9 @@ def check_slop(text, lex, lang):
 
 def check_fingerprint(text, lang):
     invisible = sum(1 for c in text if unicodedata.category(c) == "Cf")
-    em = text.count("—")
+    # La raya de diálogo es ortografía española, no huella: solo cuentan las otras.
+    em = sum(line.count("—") for line in text.split("\n")
+             if lang == "en" or not DIALOGO.search(line))
     curly = sum(text.count(c) for c in "‘’“”")
     ellip = text.count("…")
     nbsp = sum(text.count(c) for c in "   ")
@@ -217,6 +224,21 @@ def registro_problems(text, lex, registro):
     return bad, counts
 
 
+def oralidad(lex):
+    """Marcas de oralidad de todas las regiones: nadie pierde puntos por no ser rioplatense."""
+    o = lex.get("oralidad") or []
+    return [w for v in o.values() for w in v] if isinstance(o, dict) else o
+
+
+def vocab_problems(text, lex, registro):
+    voc = lex.get("vocabulario_regional") or {}
+    hits = {r: sum(len(word_regex(w).findall(text)) for w in voc.get(r, [])) for r in ("espana", "latam")}
+    otra = VOCAB_CHOQUES.get(registro)
+    if otra and hits[otra]:
+        return {otra: hits[otra]}
+    return hits if all(hits.values()) else {}
+
+
 def check_voice(text, lex, lang, registro):
     w = words(text)
     if len(w) < 25:
@@ -234,20 +256,23 @@ def check_voice(text, lex, lang, registro):
         detail = (f"{contractions:.1f} contracciones, {person:.1f} pronombres personales "
                   f"cada 100 palabras, {tells} estructura(s) de manual")
     else:
-        persona = len(ES_PERSONA.findall(text))
+        persona = len(ES_PERSONA.findall(text)) + len(ES_VOSOTROS.findall(text))
         primera = len([m for m in ES_PRIMERA.findall(text) if m.lower() not in ES_NO_VERBO])
         person = (persona + primera) * per100
-        oral = sum(len(word_regex(m).findall(text)) for m in lex.get("oralidad", []))
+        oral = sum(len(word_regex(m).findall(text)) for m in oralidad(lex))
         oral += text.count("(")  # los apartes entre paréntesis son muy humanos
         oral100 = oral * per100
         bad, _ = registro_problems(text, lex, registro)
-        reg_pen = min(100, 35 * sum(bad.values())) if bad else 0
+        vocab = vocab_problems(text, lex, registro)
+        reg_pen = min(100, 35 * sum(bad.values()) + 20 * sum(vocab.values()))
         score = (scale(person, 7.0, 1.0) * 0.40 + scale(oral100, 1.2, 0.0) * 0.20
                  + clamp(100 - tells * 20) * 0.40) - reg_pen * 0.5
         detail = (f"{person:.1f} marcas de persona y {oral100:.1f} de oralidad cada 100 palabras, "
                   f"{tells} estructura(s) de manual")
         if bad:
             names.insert(0, "registro:" + "+".join(bad))
+        if vocab:
+            names.insert(0, "vocabulario:" + "+".join(vocab))
     if uniform:
         score -= 12
         names.append("viñetas-uniformes")
@@ -301,7 +326,7 @@ def main():
     ap.add_argument("compare", nargs="?", help="segundo archivo, para ver antes/después")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--lang", default="auto", choices=["auto", "es", "en"])
-    ap.add_argument("--registro", default="auto",
+    ap.add_argument("--registro", default="auto", type=lambda r: r.lower().replace("ñ", "n"),
                     choices=["auto", "voseo", "tuteo", "usted", "neutro", "espana"])
     ap.add_argument("--lexicon", help="ruta a un léxico propio (pisa --lang)")
     args = ap.parse_args()

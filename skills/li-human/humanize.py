@@ -56,6 +56,13 @@ REGISTRO_CHOQUES = {
     "espana": ["voseo"],
 }
 
+# Vocabulario regional que no debería aparecer con cada registro (además de la mezcla).
+VOCAB_CHOQUES = {"espana": "latam", "voseo": "espana"}
+
+# Raya de diálogo: al principio de la línea o después de dos puntos, pegada a la
+# palabra. Es ortografía española correcta, no huella de máquina: no se toca.
+DIALOGO = re.compile(r"^\s*—\S|:\s+—\S")
+
 
 # --------------------------------------------------------------------------
 # idioma y léxico
@@ -141,20 +148,31 @@ def pass_typographic(text, lex):
     for entry in lex["typographic"]:
         ch = entry["from"]
         n = text.count(ch)
+        if ch == "—":
+            # "un inciso — así — en medio" y "palabra—palabra" pasan a coma,
+            # salvo en las líneas de diálogo.
+            lines = text.split("\n")
+            n = 0
+            for i, line in enumerate(lines):
+                if DIALOGO.search(line):
+                    continue
+                n += line.count("—")
+                lines[i] = re.sub(r"\s*—\s*", ", ", line)
+            text = "\n".join(lines)
         if not n:
             continue
         hits.append({"name": f"{ch} {entry['name']}", "count": n,
                      "to": entry["to"].strip() or "(espacio)"})
         if ch == "—":
-            # "un inciso — así — en medio" y "palabra—palabra" pasan a coma.
-            text = re.sub(r"\s*—\s*", ", ", text)
-        elif ch == "–":
+            continue  # ya se reemplazó arriba, línea por línea
+        if ch == "–":
             text = re.sub(r"\s*–\s*(?=\d)", "-", text)
             text = re.sub(r"\s+–\s+", ", ", text)
             text = text.replace("–", "-")
         else:
             text = text.replace(ch, entry["to"])
     text = re.sub(r",\s*([,.;:!?])", r"\1", text)
+    text = re.sub(r":\s*,\s*", ": ", text)
     text = re.sub(r",\s*\n", "\n", text)
     text = re.sub(r"(?m)^,\s*", "", text)
     return text, hits
@@ -250,6 +268,30 @@ def scan_registro(text, lex, registro="auto"):
     return flags, {k: len(v) for k, v in counts.items()}
 
 
+def scan_vocabulario(text, lex, registro="auto"):
+    """Palabras de España y de LatAm en el mismo texto, o del lado que no corresponde al registro."""
+    voc = lex.get("vocabulario_regional") or {}
+    hits = {}
+    for region in ("espana", "latam"):
+        found = [m.group(0) for w in voc.get(region, []) for m in word_regex(w).finditer(text)]
+        if found:
+            hits[region] = found
+    nombres = {"espana": "España", "latam": "LatAm"}
+    otra = VOCAB_CHOQUES.get(registro)
+    if otra and hits.get(otra):
+        return [{"id": f"vocabulario-{otra}",
+                 "name": f"Vocabulario de {nombres[otra]} en un texto en {registro}",
+                 "count": len(hits[otra]),
+                 "fix": "Cambialas por las de tu región: " + ", ".join(sorted(set(hits[otra]))[:6]) + "."}]
+    if len(hits) == 2:
+        return [{"id": "vocabulario-mezcla",
+                 "name": "Mezcla de vocabulario de España y de LatAm",
+                 "count": sum(len(v) for v in hits.values()),
+                 "fix": "Nadie dice \"ordenador\" y \"celular\" en el mismo post. Elegí una región: "
+                        + "; ".join(f"{nombres[k]}: {', '.join(sorted(set(v))[:4])}" for k, v in hits.items()) + "."}]
+    return []
+
+
 def scan_broetry(text):
     """Broetry: casi todos los párrafos son una sola oración corta."""
     paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip() and not p.strip().startswith("#")]
@@ -293,6 +335,7 @@ def scan_structures(text, lex, registro="auto", lang="es"):
         flags.append(b)
     reg_flags, _ = scan_registro(text, lex, registro)
     flags += reg_flags
+    flags += scan_vocabulario(text, lex, registro)
     return flags
 
 
@@ -360,7 +403,7 @@ def main():
     ap.add_argument("--report", action="store_true", help="mostrar qué cambió (por stderr)")
     ap.add_argument("--json", action="store_true", help="emitir {text, report} en JSON")
     ap.add_argument("--lang", default="auto", choices=["auto", "es", "en"])
-    ap.add_argument("--registro", default="auto",
+    ap.add_argument("--registro", default="auto", type=lambda r: r.lower().replace("ñ", "n"),
                     choices=["auto", "voseo", "tuteo", "usted", "neutro", "espana"],
                     help="registro del autor; auto = solo marca mezclas")
     ap.add_argument("--lexicon", help="ruta a un léxico propio (pisa --lang)")

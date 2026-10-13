@@ -118,6 +118,11 @@ territorio y primera línea, para que `/li-audit` tenga historia.
 - **Registro coherente.** Si el usuario vosea, el post vosea de punta a punta,
   incluidas las preguntas. Mezclar "tenés" con "tienes" es la marca más
   visible de un texto generado.
+- **La región del usuario, no la del modelo.** Palabras, números, moneda y
+  fechas salen de la **Variante regional** de `voice.md` y de
+  `li-human/regiones.md`: "celular" o "móvil", "18.000" o "18,000". Si el
+  monto es en dólares, `USD`: en media LatAm, `$` son pesos. Y el lenguaje
+  inclusivo, el que el usuario eligió, sostenido en todo el post.
 - **Nunca inventes.** Ninguna métrica, cliente, facturación ni resultado bajo
   el nombre del usuario, ni siquiera de relleno. Si falta un número, dejá
   `{{tu número}}` en el borrador y marcalo.
