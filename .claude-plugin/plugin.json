@@ -1,7 +1,7 @@
 {
   "name": "linkedin-agent-es",
   "description": "Catorce skills de Claude para LinkedIn en español: posts con 27 fórmulas de gancho, comentarios, respuestas, perfil, plan semanal con husos de LatAm, territorios, pre mortem con lectores simulados, transcreación es-en, DMs, bandeja, carruseles, reciclaje, auditoría, y un humanizador que entiende voseo y tuteo.",
-  "version": "1.0.0-es",
+  "version": "1.1.0-es",
   "author": {
     "name": "Pablo Guzzi",
     "url": "https://github.com/guzzipa"
