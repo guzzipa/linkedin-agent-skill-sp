@@ -137,6 +137,18 @@ def invisibles_fuera():
     assert "​" not in out and " " not in out and "⁠" not in out
 
 
+@test
+def aperturas_y_contrastes_comunes():
+    text = ("En el mundo actual, hay que aprovechar el poder de la IA.\n"
+            "No se trata solo de herramientas, se trata de criterio.\n"
+            "Cabe destacar que la gente lo nota.\n")
+    res = json.loads(run("humanize.py", "-", "--json", stdin=text).stdout)
+    assert res["text"].startswith("Hoy, hay que"), res["text"]
+    assert "\nLa gente lo nota." in res["text"], "borrar una frase no debe dejar sangría"
+    assert any("aprovechar" in f["find"] for f in res["report"]["lexical_flags"])
+    assert "no-es-solo" in ids(res["report"])
+
+
 def main():
     failed = 0
     for fn in TESTS:

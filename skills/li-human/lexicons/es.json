@@ -148,6 +148,20 @@
  ],
  "phrases": [
   {
+   "pattern": "en (?:el|este) mundo (?:actual|de hoy)",
+   "replace": "hoy",
+   "family": "aperturas",
+   "label": "en el mundo actual / de hoy",
+   "nota": "Escenario genérico. 'Hoy' alcanza, y mejor todavía arrancar por el hecho."
+  },
+  {
+   "pattern": "aprovech(?:ar|á|a|an|en|emos|ando) (?:todo )?el (?:poder|potencial) de",
+   "replace": null,
+   "family": "verbos",
+   "label": "aprovechar el poder / potencial de",
+   "nota": "Calco de 'harness the power of'. Decí qué hace concretamente."
+  },
+  {
    "pattern": "en (?:el|este) (?:vertiginoso|cambiante|dinámico|competitivo|apasionante|fascinante) mundo (?:de(?:l)?|actual)",
    "replace": null,
    "family": "aperturas",
@@ -721,7 +735,7 @@
  "structures": [
   {
    "id": "no-es-solo",
-   "regex": "(?i)\\bno (?:es|son|se trata de) (?:solo|sólo|solamente|simplemente|únicamente) [^.!?\\n—]{2,70}\\s*[,.;:—–-]\\s*(?:es|son|se trata de)\\b",
+   "regex": "(?i)\\bno (?:es|son|se trata(?: de)?) (?:solo|sólo|solamente|simplemente|únicamente)(?: de)? [^.!?\\n—]{2,70}\\s*[,.;:—–-]\\s*(?:es|son|se trata de)\\b",
    "name": "\"No es solo X, es Y\"",
    "fix": "Decí lo que querés decir. Borrá la mitad que prepara el contraste."
   },

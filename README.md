@@ -132,7 +132,7 @@ Un post escrito por una persona, en los mismos tests:
 ```
 
 ```bash
-python3 tests/run_tests.py   # 12/12 ok
+python3 tests/run_tests.py   # 13/13 ok
 ```
 
 ## La letra chica, que es la parte honesta

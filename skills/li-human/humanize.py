@@ -196,6 +196,8 @@ def pass_lexical(text, lex):
                       "count": len(found), "family": entry["family"]})
         if not entry["replace"]:
             deleted = True
+            # Al borrar, se va también el espacio de después: si no, la línea queda con sangría.
+            rx = re.compile(rx.pattern + r"[ \t]*", rx.flags)
         text = rx.sub(lambda m: _match_case(m.group(0), entry["replace"]), text)
     text = re.sub(r"[ \t]{2,}", " ", text)
     text = re.sub(r"(?m)^[ \t]*([,.;:])\s*", "", text)
