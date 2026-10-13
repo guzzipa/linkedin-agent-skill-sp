@@ -93,7 +93,11 @@ calcos con equivalente exacto ("hace sentido", "al final del día").
 "sinergia", "la clave está en", "llevar al siguiente nivel", "me complace
 anunciar", "No es solo X, es Y", "¿El resultado?", "En resumen", "¿Qué
 opinan?", "Comentá GUÍA y te lo mando", "Cómo Escalar Tu Equipo De Datos", las
-listas con ✅, el broetry, y "tenés" mezclado con "tienes". En español casi
+listas con ✅, el broetry, "tenés" mezclado con "tienes", "ordenador" mezclado
+con "celular", y las marcas del español de traducción: el gerundio de
+posterioridad ("..., logrando un aumento"), la pasiva con "por", "levanté mi
+mano", "en Enero", "en una base diaria". La raya de diálogo
+(`—Nos vamos —me dijo.`) es español correcto y no se toca. En español casi
 todo lo de manual necesita concordar en género y número o cambia según el
 contexto, así que un regex lo arruinaría. Por eso, en un post de manual en
 español el script solo sube unos puntos: la mejora fuerte la hacés vos con la
@@ -132,7 +136,7 @@ Un post escrito por una persona, en los mismos tests:
 ```
 
 ```bash
-python3 tests/run_tests.py   # 13/13 ok
+python3 tests/run_tests.py   # 18/18 ok
 ```
 
 ## La letra chica, que es la parte honesta
@@ -166,7 +170,8 @@ confirma o los descarta para tu cuenta.
 
 ```
 skills/li-post/hooks.json             27 fórmulas de gancho: plantilla, ejemplo, para qué sirve, cómo se arruina
-skills/li-human/lexicons/es.json      léxico en español: frases, palabras, 18 estructuras, registros, oralidad
+skills/li-human/lexicons/es.json      léxico en español: frases, palabras, 24 estructuras, registros, oralidad y vocabulario por región
+skills/li-human/regiones.md           vocabulario, números, moneda, fechas y lenguaje inclusivo por región
 skills/li-human/lexicons/en.json      léxico en inglés (el original, con reemplazos dudosos pasados a marca)
 skills/li-human/humanize.py           las pasadas de limpieza
 skills/li-human/detect.py             el panel de cinco chequeos

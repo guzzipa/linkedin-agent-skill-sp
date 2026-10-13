@@ -27,6 +27,10 @@ Si preferís no completarlo a mano, pegale a Claude tres posts tuyos y decile
 
 - **Registro:** voseo / tuteo / usted / neutro / españa
   (lo usan `li-human` y todos los skills; si mezclás, se marca)
+- **Variante regional:** rioplatense / México / España / Chile / Colombia-Venezuela / neutro LatAm
+  (define palabras como celular o móvil, laburo o chamba; ver `skills/li-human/regiones.md`)
+- **Números y moneda:** (18.000 o 18,000; "USD" o "$" en pesos; cuál es tu moneda local)
+- **Lenguaje inclusivo:** masculino genérico / desdoblamiento / neutro sin marca / morfológico ("todes")
 - **Tres posts míos que más suenan a mí:** (pegalos o linkealos)
 - **Palabras que uso de verdad:**
 - **Palabras que nunca usaría:** (agregalas también a `lexicons/es.json` si querés que se marquen)
