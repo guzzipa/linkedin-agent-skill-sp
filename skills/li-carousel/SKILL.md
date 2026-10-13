@@ -1,71 +1,84 @@
 ---
 name: li-carousel
 description: >-
-  Build a LinkedIn document post (carousel) - slide-by-slide copy, the cover
-  that earns the swipe, and the PDF to upload. Use when the user says
-  "carousel", "document post", "slides for LinkedIn", "turn this into a
-  carousel", or has a list-shaped idea that would die as a text post.
+  Arma un post de documento (carrusel) para LinkedIn: el texto slide por
+  slide, la portada que gana el deslizar, y el PDF para subir. Usalo cuando el
+  usuario dice "carrusel", "post de documento", "slides para LinkedIn",
+  "pasá esto a carrusel", o tiene una idea con forma de lista que como texto
+  se moriría.
 ---
 
 # li-carousel
 
-Document posts are the highest-dwell format on LinkedIn, because a swipe is
-counted and a scroll is not. The format rewards one idea broken into steps.
-It punishes a text post cut into pieces.
+Los posts de documento son el formato de más tiempo de permanencia en
+LinkedIn, porque cada deslizar cuenta y un scroll no. Las mediciones que
+circulan en 2025 y 2026 los ponen arriba en tasa de interacción frente a texto
+e imagen. El formato premia una idea partida en pasos y castiga un post de
+texto cortado en pedazos.
 
-## When to use it instead of a text post
+## Cuándo usarlo en vez de un post de texto
 
-Use a carousel when the idea has **sequence** - steps, a countdown, a
-before/after progression, a framework with parts. Use a text post when the
-idea is one claim. Splitting one claim across eight slides is the most common
-way carousels fail, and if that is what the user has, say so and hand them to
+Cuando la idea tiene **secuencia**: pasos, una cuenta regresiva, un antes y
+después progresivo, un marco con partes. Si la idea es una sola afirmación,
+va en texto. Partir una afirmación en ocho slides es la forma más común en que
+fallan los carruseles; si eso es lo que tiene el usuario, decilo y mandalo a
 `/li-post`.
 
-## Structure
+## Estructura
 
-8-12 slides. Under 8 is a text post. Over 12 and the completion rate falls off
-a cliff.
+De 8 a 12 slides. Menos de 8 es un post de texto. Más de 12 y la tasa de
+llegada al final se cae.
 
 ```
-1        COVER      the hook, 6 words or fewer, plus one line of promise
-2        THE STAKE  why this matters, in one sentence
-3-N      ONE IDEA PER SLIDE. A headline of 3-7 words, and at most 25 words
-                    under it. If a slide needs a paragraph, it is two slides.
-N+1      RECAP      the whole thing as a list, so the screenshot is useful
-LAST     CTA        one action. Follow, comment a keyword, or the link. One.
+1        PORTADA       el gancho, 6 palabras o menos, más una línea de promesa
+2        LO QUE ESTÁ EN JUEGO  por qué importa, en una oración
+3-N      UNA IDEA POR SLIDE. Un título de 3 a 7 palabras y como mucho 30
+                       palabras abajo. Si necesita un párrafo, son dos slides.
+N+1      RESUMEN       todo como lista, para que la captura sirva sola
+ÚLTIMA   CIERRE        una acción. Seguir, comentar algo concreto, o el link. Una.
 ```
 
-## Slide copy rules
+**En español, el texto crece entre un 15% y un 25% respecto del inglés.** Si
+la plantilla de diseño se pensó en inglés, el cuerpo de 25 palabras pasa a 30
+y no entra. Ajustá el tamaño de letra o cortá contenido, nunca bajes de 28 px.
 
-- **Slide 1 is 80% of the result.** Six words. Big. The rest of the deck
-  cannot save a cover nobody swipes.
-- **Number every slide** (3/10). Completion goes up when people can see the
-  end.
-- **No slide is a paragraph.** If you cannot say it in 25 words, split it.
-- **The recap slide is the one people screenshot.** Make it standalone.
-- **The user's handle on every slide**, small, bottom corner. Screenshots
-  travel without you.
+## Reglas de texto
 
-## Making the PDF
+- **La portada es el 80% del resultado.** Seis palabras. Grande. El resto del
+  carrusel no salva una portada que nadie desliza.
+- **Mayúscula solo al principio.** "Cómo armar un equipo de datos", no
+  "Cómo Armar Un Equipo De Datos". Las mayúsculas de título son un calco del
+  inglés y `/li-human` las marca.
+- **Numerá cada slide** (3/10). Se termina más cuando se ve el final.
+- **Ningún slide es un párrafo.** Si no entra en 30 palabras, partilo.
+- **El slide de resumen es el que se captura.** Que se sostenga solo.
+- **Tu nombre de usuario en cada slide**, chico, en una esquina. Las capturas
+  viajan sin vos.
+- **Un slide con un dato propio de la región**, si lo hay. Es lo que menos se
+  ve en carruseles en español y lo que más se guarda.
 
-LinkedIn wants a PDF, 1080x1350 (4:5) for maximum feed real estate, under
-100MB, under 300 pages. Build it as HTML and print to PDF:
+## Hacer el PDF
+
+LinkedIn pide PDF, 1080x1350 (4:5) para ocupar más lugar en el feed, menos
+de 100 MB, menos de 300 páginas. Armalo en HTML e imprimilo a PDF:
 
 ```bash
-# one page per slide, 1080x1350, no margins
-# then: Chrome headless --print-to-pdf, or any HTML-to-PDF you already use
+# una página por slide, 1080x1350, sin márgenes
+# después: Chrome headless --print-to-pdf, o el conversor que tengas
 ```
 
-Write the HTML with one `<section>` per slide, `width:1080px; height:1350px;
-page-break-after:always`, a single accent colour, and type no smaller than
-28px - people read these on a phone at thumbnail size. If the user has a brand
-skill or design system in this project, use it and do not invent a palette.
+Escribí el HTML con un `<section>` por slide, `width:1080px; height:1350px;
+page-break-after:always`, un solo color de acento y letra de 28 px o más:
+se leen en el celular, en miniatura. Usá `lang="es"` en el HTML para que el
+corte de palabras con guion sea correcto. Si el usuario tiene un sistema de
+diseño o una marca en el proyecto, usalo y no inventes paleta.
 
-## Output
+## Salida
 
-The slide-by-slide copy first, as a numbered list the user can read in ten
-seconds. Then the accompanying **post text** - a carousel still needs 2-3
-lines above it, which is the actual hook in the feed. Run both through
-`/li-human`. Then build the PDF only if the user approves the copy.
+Primero el texto slide por slide, como lista numerada que se lee en diez
+segundos. Después el **texto del post** que lo acompaña: un carrusel igual
+necesita dos o tres líneas arriba, que son el gancho real en el feed. Pasá
+las dos cosas por `/li-human`. El PDF se arma solo si el usuario aprueba el
+texto.
 
-Nothing is uploaded to LinkedIn. The user posts the PDF themselves.
+No se sube nada a LinkedIn. El PDF lo publica el usuario.

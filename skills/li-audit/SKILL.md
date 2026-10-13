@@ -1,88 +1,98 @@
 ---
 name: li-audit
 description: >-
-  Post-mortem on what the user has already published - which posts actually
-  worked, why, and what to stop doing. Use when the user pastes their LinkedIn
-  analytics or past posts and asks "what's working", "why did this flop", "read
-  my analytics", "audit my content", or wants to know what to double down on.
+  Post mortem de lo que el usuario ya publicó: qué posts funcionaron, por qué,
+  y qué dejar de hacer. Usalo cuando el usuario pega su analytics de LinkedIn o
+  posts anteriores y pregunta "¿qué está funcionando?", "¿por qué no anduvo
+  este?", "leé mis métricas", "auditá mi contenido", o quiere saber en qué
+  redoblar.
 ---
 
 # li-audit
 
-The only honest source of what works for an account is that account. Every
-rule in every LinkedIn guide, including the ones in this pack, is a prior. The
-user's own last 30 posts are the evidence.
+La única fuente honesta de qué funciona para una cuenta es esa cuenta. Toda
+regla de toda guía de LinkedIn, incluidas las de este paquete, es un supuesto
+previo. Los últimos 30 posts del usuario son la evidencia.
 
-## Input
+## Entrada
 
-Ask for whichever the user has:
+Pedí lo que el usuario tenga:
 
-- The post analytics export (LinkedIn: Analytics -> Content -> Export). CSV.
-- Or a screenshot per post with impressions, reactions, comments, reposts.
-- Or just the posts and their reaction counts, which is enough for a first
-  pass.
+- El export de analytics de LinkedIn (Analytics -> Contenido -> Exportar), en
+  Excel o CSV. Si viene como archivo, procesalo con código, no a ojo.
+- O una captura por post con impresiones, miembros alcanzados, reacciones,
+  comentarios, compartidos, guardados y envíos.
+- O solo los posts y sus reacciones, que alcanza para una primera pasada.
 
-Also read `~/.claude/linkedin/log.md` if it exists, since it records which
-hook formula each post used.
+Leé también `~/.claude/linkedin/log.md` si existe: registra gancho, territorio
+y si hubo kit de primera hora en cada post.
 
-## What to actually measure
+## Qué medir de verdad
 
-Raw impressions are the least useful number on the page, because they are
-mostly a function of how many people already follow the user. Compute these
-instead, and show the working:
+Las impresiones crudas son el número menos útil de la página, porque dependen
+sobre todo de cuánta gente ya te sigue. Calculá esto, y mostrá la cuenta:
 
-| metric | how | what it tells you |
+| métrica | cómo | qué te dice |
 | --- | --- | --- |
-| **Engagement rate** | (reactions + comments + reposts) / impressions | whether the post earned its reach |
-| **Comment ratio** | comments / reactions | whether it started something or just got a nod |
-| **Reach multiple** | impressions / follower count | whether it travelled past the existing audience |
-| **Save/send rate** | if available | the strongest single predictor of future reach |
+| **Tasa de interacción** | (reacciones + comentarios + compartidos) / impresiones | si el post se ganó el alcance que tuvo |
+| **Proporción de comentarios** | comentarios / reacciones | si abrió una conversación o solo un gesto |
+| **Múltiplo de alcance** | miembros alcanzados / seguidores | si salió de la audiencia propia |
+| **Tasa de guardado y envío** | (guardados + envíos) / miembros alcanzados | la señal de utilidad más fuerte; LinkedIn la muestra desde septiembre de 2025 |
+| **Conversión a perfil** | visitas al perfil o seguidores ganados desde el post | si el post trabaja para el objetivo del usuario, no solo para el feed |
 
-Rank by engagement rate and reach multiple, not impressions. A post with 900
-impressions and 40 comments beat the one with 12,000 impressions and 6.
+Ordená por tasa de interacción y múltiplo de alcance, no por impresiones. Un
+post con 900 impresiones y 40 comentarios le ganó al de 12.000 y 6.
 
-## Then find the pattern
+La conversión a perfil es la que más importa si el usuario busca trabajo o
+clientes. Un post viral que no trae visitas al perfil entretuvo, no vendió.
 
-With the top 5 and bottom 5 side by side, look for what actually separates
-them, and be willing to conclude something the user will not like:
+## Después, buscar el patrón
 
-- Hook formula. Which numbers from `hooks.json` are in the top 5?
-- Format. Text, document, image, video.
-- Length.
-- Theme.
-- Day and time - check this **last**, and only if the other four show nothing.
-  It is almost never the cause, and it is where people want it to be.
-- First-hour comments. Posts the user replied to inside an hour versus not.
+Con los 5 mejores y los 5 peores lado a lado, buscá qué los separa de verdad,
+y estate dispuesto a concluir algo que al usuario no le guste:
 
-State the finding as a claim with the evidence attached, and say how confident
-it is. With 30 posts you can see a pattern; with 6 you cannot, and you should
-say that instead of inventing one.
+- **Territorio.** ¿Los mejores caen dentro de los territorios de
+  `territorio.md`? Si los posts fuera de tema rinden peor, es la evidencia de
+  que la coherencia temática importa para esta cuenta.
+- **Gancho.** ¿Qué números de `hooks.json` están entre los 5 mejores?
+- **Formato.** Texto, documento, imagen, video.
+- **Largo.**
+- **Idioma**, si el usuario publica en español y en inglés.
+- **Primera hora.** Posts donde el usuario respondió dentro de la hora contra
+  los que no.
+- **Día y hora**, **al final**, y solo si lo demás no muestra nada. Casi nunca
+  es la causa, y es donde todos quieren que esté.
 
-## Output
+Enunciá cada hallazgo como afirmación con la evidencia al lado, y decí cuánta
+confianza le tenés. Con 30 posts se puede ver un patrón; con 6 no, y tenés que
+decir eso en vez de inventar uno.
+
+## Salida
 
 ```
-AUDIT  ·  31 posts  ·  Jun 12 - Sep 5
+AUDITORÍA  ·  31 posts  ·  12 jun - 5 sep
 
-TOP 5 BY ENGAGEMENT RATE
-  8.1%  #3  Mistake      "$18,000 is what no contract cost me"      1,940 imp
-  6.4%  #20 Walk-Away    "I fired my highest-paying client"         2,210 imp
+5 MEJORES POR TASA DE INTERACCIÓN
+  8,1%  #3  Confesión      "USD 18.000 es lo que me costó no firmar"  1.940 imp  · 9 guardados
+  6,4%  #22 Postmortem     "Incidente: el modelo aprobó 300..."       2.210 imp  · 31 guardados
   ...
 
-BOTTOM 5
-  0.4%  #5  List         "7 tools every founder needs"             11,400 imp
+5 PEORES
+  0,4%  #5  Lista          "7 herramientas que todo founder necesita" 11.400 imp
   ...
 
-WHAT THE DATA SAYS
-1. Posts where you were the one who looked bad: mean 6.2% vs 1.1% for
-   everything else. n=6. This is your strongest signal and it is not close.
-2. Tool listicles get impressions and nothing else. High reach, no comments,
-   no leads. Three of your bottom five.
-3. Day of week shows nothing. Your Tuesday mean and your Friday mean are
-   inside the noise. Stop optimising it.
+QUÉ DICEN LOS DATOS
+1. Los posts donde quedaste mal: 6,2% de promedio contra 1,1% del resto. n=6.
+   Es tu señal más fuerte y no está cerca.
+2. Las listas de herramientas traen impresiones y nada más: sin comentarios,
+   sin visitas al perfil. Tres de tus cinco peores.
+3. Los 4 posts fuera de tus territorios promedian la mitad de alcance. n=4,
+   confianza media.
+4. El día de la semana no muestra nada. Martes y viernes están dentro del ruido.
 
-STOP: listicles about tools.
-DO MORE: the ones with a cost you paid, and a number.
+DEJÁ: las listas de herramientas.
+HACÉ MÁS: los que tienen un costo que pagaste y un número.
 ```
 
-Then hand the conclusions to `/li-plan` so next week's plan is built on the
-user's own evidence rather than on defaults.
+Después pasale las conclusiones a `/li-plan`, para que el plan de la semana
+se arme con la evidencia del usuario y no con supuestos.

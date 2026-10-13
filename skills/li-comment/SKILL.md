@@ -1,91 +1,108 @@
 ---
 name: li-comment
 description: >-
-  Write comments on other people's LinkedIn posts that read as a person with an
-  opinion, not a bot. Use when the user pastes a post and wants a comment, says
-  "comment on this", "engage with this", "what do I say here", or wants a batch
-  of comments for their engagement round.
+  Escribe comentarios en posts ajenos de LinkedIn que se leen como una persona
+  con criterio, no como un bot. Usalo cuando el usuario pega un post y quiere
+  un comentario, dice "comentá esto", "¿qué le pongo acá?", "armame
+  comentarios para la ronda de hoy", o quiere una tanda de comentarios.
 ---
 
 # li-comment
 
-Commenting is the highest-leverage thing on LinkedIn and the easiest to do
-badly. A comment on a post with 400 reactions gets seen by more people than
-most of your own posts. A generic one gets seen by nobody and costs you
-credibility with the author.
+Comentar es lo que más rinde en LinkedIn y lo más fácil de hacer mal. Un
+comentario en un post con 400 reacciones lo ve más gente que la mayoría de tus
+posts. Uno genérico no lo ve nadie y te cuesta credibilidad con el autor.
 
-## Input
+Y desde que el ranking pesa los comentarios largos y con contenido por encima
+de las reacciones, un buen comentario también le hace bien al post del otro,
+que es justamente por lo que el autor lo recuerda.
 
-The user pastes the post text (and the author's name and role if they have
-it). If they paste a screenshot, read it. If they give you a URL you cannot
-open, ask them to paste the text - do not guess what the post said, and do not
-use browser automation to scrape the feed.
+## Entrada
 
-## The nine comment types
+El usuario pega el texto del post (y si puede, nombre y cargo del autor). Si
+pega una captura, leela. Si da un link que no podés abrir, pedí el texto: no
+adivines qué decía, y no uses un navegador para leer el feed.
 
-Pick by what the post actually is. Never default to type 1.
+Leé `~/.claude/linkedin/voice.md` para el registro y los territorios.
 
-| # | type | when | shape |
+## Idioma
+
+Comentá en el idioma del post. Si el post está en inglés y el usuario escribe
+en español, el comentario va en inglés (humanizado con el léxico en inglés).
+Comentar en español bajo un post en inglés es la forma más rápida de que nadie
+lo lea.
+
+## Los diez tipos de comentario
+
+Elegí según lo que el post es. Nunca por defecto el 1.
+
+| # | tipo | cuándo | forma |
 | --- | --- | --- | --- |
-| 1 | **Add a datum** | post makes a claim you can support with a number | "We saw the same thing: 40% of our..." |
-| 2 | **Add the missing case** | post is right but incomplete | "This holds until {condition}. Then..." |
-| 3 | **Respectful disagree** | you genuinely think it is wrong | name the agreement first, then the fork |
-| 4 | **Extend one line** | one sentence in the post is the good one | quote it, then build on it |
-| 5 | **Ask the real question** | post skipped the hard part | one question, specific, no "curious to hear" |
-| 6 | **The receipt** | you have done the thing they described | what happened, in two sentences |
-| 7 | **The correction** | there is a factual error | be right, be brief, be kind, be sure |
-| 8 | **The reframe** | the post has the right facts and the wrong frame | "Another way to read this:" |
-| 9 | **The one-liner** | the post needs nothing, you want presence | under 12 words, must be funny or true |
+| 1 | **Sumar un dato** | el post afirma algo que podés respaldar con un número | "Nos pasó lo mismo: el 40% de..." |
+| 2 | **El caso que falta** | el post tiene razón pero está incompleto | "Esto vale hasta que {condición}. Ahí..." |
+| 3 | **Desacuerdo respetuoso** | creés de verdad que está mal | primero el acuerdo real, después la bifurcación |
+| 4 | **Estirar una línea** | una oración del post es la buena | citala y construí sobre ella |
+| 5 | **La pregunta de verdad** | el post se salteó la parte difícil | una pregunta, concreta, sin "me da curiosidad" |
+| 6 | **El comprobante** | hiciste lo que describen | qué pasó, en dos oraciones |
+| 7 | **La corrección** | hay un error de hecho | tené razón, sé breve, sé amable, estate seguro |
+| 8 | **El reencuadre** | los hechos están bien y el marco no | "Otra forma de leerlo:" |
+| 9 | **La frase sola** | el post no necesita nada, querés presencia | menos de 12 palabras, graciosa o verdadera |
+| 10 | **La mirada local** | el post generaliza desde EE.UU. o Europa | cómo cambia en LatAm, con un caso o un dato |
 
-## Rules
+El 10 es nuevo y es el que menos competencia tiene: la mayoría del contenido
+grande se escribe desde otro mercado, y un comentario que dice "en Argentina
+esto funciona al revés, por esto" es casi siempre el más útil del hilo.
 
-- **2 to 4 sentences.** Longer reads as a hijack. Shorter reads as filler.
-- **Never open with "Great post"**, "Love this", "So true", "Couldn't agree
-  more", "This resonates", or the author's first name followed by an
-  exclamation mark. All six are invisible.
-- **No emoji openers.** No 🔥 or 👏 as a first character.
-- **Never restate the post.** The author knows what they wrote and so does
-  everyone reading.
-- **One idea.** A comment with two points reads as a blog attempt.
-- **Say the specific thing.** If the comment could sit under any post on the
-  topic, it is not a comment, it is noise.
-- **Disagreement is allowed and works**, but the agreement has to come first
-  and be real.
+## Reglas
 
-## Output
+- **De 2 a 4 oraciones.** Más largo se lee como secuestro del hilo. Más corto,
+  como relleno.
+- **Nunca empieces con** "Excelente post", "Gran aporte", "Muy buen punto",
+  "Totalmente de acuerdo", "Me encantó", "Qué buena reflexión", "Gracias por
+  compartir", ni con el nombre del autor seguido de signo de exclamación.
+  `/li-human` marca estas aperturas.
+- **Sin emoji al principio.** Nada de 🔥 ni 👏 como primer carácter.
+- **No repitas el post.** El autor sabe lo que escribió.
+- **Una idea.** Un comentario con dos puntos parece un intento de blog.
+- **Decí lo específico.** Si el comentario podría ir debajo de cualquier post
+  del tema, es ruido.
+- **El desacuerdo funciona**, pero el acuerdo va primero y tiene que ser real.
+- **Temprano.** Un comentario en la primera hora del post ajeno se ve mucho
+  más que uno al día siguiente.
 
-Give **two options of different types**, labelled, plus a one-line reason for
-the one you would post. Run both through `/li-human` first - a comment with an
-em dash in it is more obviously machine-written than a post, because comments
-are short and people read them closely.
+## Salida
+
+**Dos opciones de tipos distintos**, rotuladas, y una línea de por qué
+publicarías una. Pasalas por `/li-human` antes: un comentario con raya se nota
+más que un post, porque es corto y se lee de cerca.
 
 ```
-COMMENT OPTIONS  (on @author's post about hiring)
+OPCIONES  (en el post de @autora sobre contratación)
 
-[6 · Receipt]
-We tried the no-resume version of this for 3 hires last year. Two were the
-best hires we made. The third was a disaster, and the difference was whether
-they had done the actual job before, not how they interviewed.
+[6 · Comprobante]
+Probamos la versión sin CV en 3 contrataciones el año pasado. Dos fueron las
+mejores que hicimos. La tercera salió mal, y la diferencia no estuvo en la
+entrevista sino en si ya habían hecho el trabajo antes.
 
-[3 · Respectful disagree]
-Agree on the signal problem. But the fix that worked for us was not removing
-the resume, it was giving every candidate the same 90-minute paid task. Same
-outcome, far less argument internally.
+[10 · Mirada local]
+En Argentina el problema es el inverso: los CV dicen poco porque la mitad de
+la experiencia buena es freelance para afuera. Lo que nos funcionó fue una
+tarea paga de 90 minutos, igual para todos.
 
-Post the first. It is your own data and it concedes a failure, which is the
-part people reply to.
+Publicaría la primera: es tu dato y reconoce un error, que es la parte que la
+gente responde.
 ```
 
-## Batch mode
+## Modo tanda
 
-If the user wants an engagement round, ask for the 5-10 posts as pasted text
-in one message, return one comment each in a single block, and keep a running
-note of who they have already commented on this week in
-`~/.claude/linkedin/log.md`. Commenting on the same three people every day is
-visible and it looks like what it is.
+Si el usuario quiere una ronda, pedí los 5 a 10 posts pegados en un mensaje,
+devolvé un comentario por post en un solo bloque, y llevá registro en
+`~/.claude/linkedin/log.md` de a quién comentó esta semana. Comentar siempre a
+las mismas tres personas se nota, y LinkedIn detecta y castiga los grupos que
+se comentan entre sí de forma coordinada ("pods").
 
-## Never
+## Nunca
 
-Do not auto-post. Do not use a browser tool to publish comments on the user's
-behalf. Automated posting and scraping both violate LinkedIn's User Agreement
-and put the account at risk. This skill writes the comment. The user posts it.
+No publiques. No uses un navegador para comentar por el usuario. Publicar o
+leer el feed de forma automatizada viola el Acuerdo de Usuario de LinkedIn y
+pone la cuenta en riesgo. Este skill escribe el comentario; el usuario lo pega.

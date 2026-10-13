@@ -1,0 +1,959 @@
+{
+ "idioma": "es",
+ "version": "1.0",
+ "note": "Léxico en español para humanize.py y detect.py. 'replace' con texto = reemplazo automático seguro (conectores, calcos con equivalente exacto). 'replace': null = solo se marca para reescribir a mano, porque el reemplazo depende del contexto o del género y número. 'pattern' acepta regex. Editalo: si una palabra es jerga legítima de tu industria, sacala.",
+ "invisible": [
+  {
+   "cp": "U+200B",
+   "name": "ZERO WIDTH SPACE",
+   "action": "delete"
+  },
+  {
+   "cp": "U+200C",
+   "name": "ZERO WIDTH NON-JOINER",
+   "action": "delete"
+  },
+  {
+   "cp": "U+200D",
+   "name": "ZERO WIDTH JOINER",
+   "action": "delete"
+  },
+  {
+   "cp": "U+2060",
+   "name": "WORD JOINER",
+   "action": "delete"
+  },
+  {
+   "cp": "U+FEFF",
+   "name": "ZERO WIDTH NO-BREAK SPACE / BOM",
+   "action": "delete"
+  },
+  {
+   "cp": "U+00AD",
+   "name": "SOFT HYPHEN",
+   "action": "delete"
+  },
+  {
+   "cp": "U+180E",
+   "name": "MONGOLIAN VOWEL SEPARATOR",
+   "action": "delete"
+  },
+  {
+   "cp": "U+061C",
+   "name": "ARABIC LETTER MARK",
+   "action": "delete"
+  },
+  {
+   "cp": "U+200E",
+   "name": "LEFT-TO-RIGHT MARK",
+   "action": "delete"
+  },
+  {
+   "cp": "U+200F",
+   "name": "RIGHT-TO-LEFT MARK",
+   "action": "delete"
+  },
+  {
+   "cp": "U+E0000-U+E007F",
+   "name": "TAG CHARACTERS (invisible ASCII smuggling)",
+   "action": "delete"
+  },
+  {
+   "cp": "U+00A0",
+   "name": "NO-BREAK SPACE",
+   "action": "space"
+  },
+  {
+   "cp": "U+202F",
+   "name": "NARROW NO-BREAK SPACE",
+   "action": "space"
+  },
+  {
+   "cp": "U+2009",
+   "name": "THIN SPACE",
+   "action": "space"
+  },
+  {
+   "cp": "U+2007",
+   "name": "FIGURE SPACE",
+   "action": "space"
+  },
+  {
+   "cp": "U+2003",
+   "name": "EM SPACE",
+   "action": "space"
+  },
+  {
+   "cp": "U+2002",
+   "name": "EN SPACE",
+   "action": "space"
+  }
+ ],
+ "typographic": [
+  {
+   "from": "—",
+   "name": "EM DASH",
+   "to": ", "
+  },
+  {
+   "from": "–",
+   "name": "EN DASH",
+   "to": "-"
+  },
+  {
+   "from": "‘",
+   "name": "LEFT SINGLE QUOTE",
+   "to": "'"
+  },
+  {
+   "from": "’",
+   "name": "RIGHT SINGLE QUOTE",
+   "to": "'"
+  },
+  {
+   "from": "“",
+   "name": "LEFT DOUBLE QUOTE",
+   "to": "\""
+  },
+  {
+   "from": "”",
+   "name": "RIGHT DOUBLE QUOTE",
+   "to": "\""
+  },
+  {
+   "from": "…",
+   "name": "HORIZONTAL ELLIPSIS",
+   "to": "..."
+  },
+  {
+   "from": "′",
+   "name": "PRIME",
+   "to": "'"
+  },
+  {
+   "from": "·",
+   "name": "MIDDLE DOT",
+   "to": "-"
+  },
+  {
+   "from": "•",
+   "name": "BULLET",
+   "to": "-"
+  },
+  {
+   "from": "→",
+   "name": "RIGHTWARDS ARROW",
+   "to": "->"
+  }
+ ],
+ "phrases": [
+  {
+   "pattern": "en (?:el|este) mundo (?:actual|de hoy)",
+   "replace": "hoy",
+   "family": "aperturas",
+   "label": "en el mundo actual / de hoy",
+   "nota": "Escenario genérico. 'Hoy' alcanza, y mejor todavía arrancar por el hecho."
+  },
+  {
+   "pattern": "aprovech(?:ar|á|a|an|en|emos|ando) (?:todo )?el (?:poder|potencial) de",
+   "replace": null,
+   "family": "verbos",
+   "label": "aprovechar el poder / potencial de",
+   "nota": "Calco de 'harness the power of'. Decí qué hace concretamente."
+  },
+  {
+   "pattern": "en (?:el|este) (?:vertiginoso|cambiante|dinámico|competitivo|apasionante|fascinante) mundo (?:de(?:l)?|actual)",
+   "replace": null,
+   "family": "aperturas",
+   "label": "en el vertiginoso mundo de...",
+   "nota": "Arrancá por el hecho concreto, no por el escenario."
+  },
+  {
+   "pattern": "en la era (?:digital|de la (?:ia|inteligencia artificial)|actual)",
+   "replace": null,
+   "family": "aperturas",
+   "label": "en la era digital / de la IA",
+   "nota": "Sacala. Todos sabemos en qué era estamos."
+  },
+  {
+   "pattern": "en un mundo (?:cada vez más|donde|en el que)",
+   "replace": null,
+   "family": "aperturas",
+   "label": "en un mundo cada vez más...",
+   "nota": "Apertura de ensayo escolar. Empezá por lo que pasó."
+  },
+  {
+   "find": "hoy más que nunca",
+   "replace": "hoy",
+   "family": "aperturas"
+  },
+  {
+   "find": "en el panorama actual",
+   "replace": "hoy",
+   "family": "aperturas"
+  },
+  {
+   "find": "en el contexto actual",
+   "replace": "hoy",
+   "family": "aperturas"
+  },
+  {
+   "pattern": "en (?:este|el siguiente) (?:post|artículo|hilo),? (?:te )?(?:voy a|vamos a|exploraremos|veremos)",
+   "replace": null,
+   "family": "aperturas",
+   "label": "en este post voy a...",
+   "nota": "No anuncies lo que vas a decir. Decilo."
+  },
+  {
+   "find": "sin más preámbulos",
+   "replace": "",
+   "family": "aperturas"
+  },
+  {
+   "find": "no es ningún secreto que",
+   "replace": "",
+   "family": "aperturas"
+  },
+  {
+   "pattern": "seamos (?:honestos|sinceros|realistas)",
+   "replace": null,
+   "family": "aperturas",
+   "label": "seamos honestos",
+   "nota": "Muletilla de LinkedIn. Si es honesto, se nota sin avisar."
+  },
+  {
+   "pattern": "(?:acá|aquí) está la cosa",
+   "replace": null,
+   "family": "calcos",
+   "label": "acá está la cosa",
+   "nota": "Calco de \"here's the thing\"."
+  },
+  {
+   "pattern": "es importante (?:destacar|señalar|mencionar|tener en cuenta|recordar) que",
+   "replace": "",
+   "family": "relleno",
+   "label": "es importante destacar que"
+  },
+  {
+   "pattern": "vale la pena (?:destacar|señalar|mencionar|resaltar) que",
+   "replace": "",
+   "family": "relleno",
+   "label": "vale la pena destacar que"
+  },
+  {
+   "pattern": "cabe (?:destacar|señalar|mencionar|resaltar) que",
+   "replace": "",
+   "family": "relleno",
+   "label": "cabe destacar que"
+  },
+  {
+   "find": "sin lugar a dudas",
+   "replace": "sin duda",
+   "family": "relleno"
+  },
+  {
+   "find": "dicho esto",
+   "replace": "aun así",
+   "family": "relleno"
+  },
+  {
+   "pattern": "(?:es|son) (?:un|una)? ?testimonio de",
+   "replace": null,
+   "family": "relleno",
+   "label": "es un testimonio de",
+   "nota": "Calco de \"a testament to\". Decí qué prueba."
+  },
+  {
+   "pattern": "espero que (?:este post|esto|este contenido) (?:te|les) (?:sirva|ayude|resulte útil)",
+   "replace": null,
+   "family": "cierres",
+   "label": "espero que esto te sirva",
+   "nota": "Cierre genérico. Terminá con la pregunta o la instrucción específica."
+  },
+  {
+   "pattern": "(?:llevar|llevarlo|llevarla|llevá|lleva|llevamos|llevó)(?: \\w+)? al (?:siguiente|próximo) nivel",
+   "replace": null,
+   "family": "metáforas",
+   "label": "al siguiente nivel",
+   "nota": "Decí qué cambió y cuánto."
+  },
+  {
+   "find": "cambio de paradigma",
+   "replace": null,
+   "family": "metáforas",
+   "nota": "Decí qué dejó de hacerse y qué se hace ahora."
+  },
+  {
+   "pattern": "(?:sumerg|adentr|embarc)\\w* en",
+   "replace": null,
+   "family": "metáforas",
+   "label": "sumergirse / adentrarse / embarcarse en",
+   "nota": "Calco de \"delve/dive into/embark on\"."
+  },
+  {
+   "pattern": "(?:el )?rico tapiz",
+   "replace": null,
+   "family": "metáforas",
+   "label": "rico tapiz"
+  },
+  {
+   "pattern": "en el (?:reino|universo) de",
+   "replace": null,
+   "family": "metáforas",
+   "label": "en el reino de",
+   "nota": "Calco de \"in the realm of\"."
+  },
+  {
+   "pattern": "en constante (?:evolución|cambio)",
+   "replace": null,
+   "family": "metáforas",
+   "label": "en constante evolución"
+  },
+  {
+   "pattern": "(?:desbloque|liber)\\w* (?:todo )?(?:el|su|tu|nuestro) (?:verdadero )?potencial",
+   "replace": null,
+   "family": "metáforas",
+   "label": "desbloquear el potencial"
+  },
+  {
+   "pattern": "(?:mi|este|nuestro|tu) viaje (?:de|en|como|hacia|por)",
+   "replace": null,
+   "family": "metáforas",
+   "label": "mi viaje en...",
+   "nota": "Calco de \"journey\". Decí cuánto tiempo y qué hiciste."
+  },
+  {
+   "pattern": "a la vanguardia",
+   "replace": null,
+   "family": "metáforas",
+   "label": "a la vanguardia"
+  },
+  {
+   "pattern": "navegar (?:el|la|los|las|por (?:el|la|los|las)) (?:incertidumbre|complejidad|desafíos?|cambios?|mundo|panorama)",
+   "replace": null,
+   "family": "metáforas",
+   "label": "navegar la incertidumbre",
+   "nota": "Calco de \"navigate\"."
+  },
+  {
+   "pattern": "abraz\\w+ (?:el|la|los|las) (?:cambio|incertidumbre|innovación|ia|inteligencia artificial|futuro)",
+   "replace": null,
+   "family": "metáforas",
+   "label": "abrazar el cambio",
+   "nota": "Calco de \"embrace\"."
+  },
+  {
+   "pattern": "(?:juega|juegan|jugar|jugó|jugando) un (?:rol|papel)",
+   "replace": null,
+   "family": "calcos",
+   "label": "juega un rol",
+   "nota": "Calco de \"play a role\". Decí qué hace."
+  },
+  {
+   "pattern": "la clave (?:está|es) en",
+   "replace": null,
+   "family": "muletillas",
+   "label": "la clave está en",
+   "nota": "La frase más usada de LinkedIn en español. Nombrá la cosa directamente."
+  },
+  {
+   "pattern": "es (?:clave|fundamental|crucial|vital|esencial|primordial)",
+   "replace": null,
+   "family": "muletillas",
+   "label": "es clave / es fundamental",
+   "nota": "Afirmación sin evidencia. Mostrá qué pasa si no se hace."
+  },
+  {
+   "find": "hace sentido",
+   "replace": "tiene sentido",
+   "family": "calcos"
+  },
+  {
+   "find": "hacen sentido",
+   "replace": "tienen sentido",
+   "family": "calcos"
+  },
+  {
+   "find": "hacer sentido",
+   "replace": "tener sentido",
+   "family": "calcos"
+  },
+  {
+   "find": "al final del día",
+   "replace": "al final",
+   "family": "calcos"
+  },
+  {
+   "find": "en orden a",
+   "replace": "para",
+   "family": "calcos"
+  },
+  {
+   "pattern": "aplic(?:ar|ó|é|aron|ando) (?:a|para) (?:un|una|el|la|este|esta) (?:puesto|trabajo|posición|rol|beca|programa|búsqueda)",
+   "replace": null,
+   "family": "calcos",
+   "label": "aplicar a un puesto",
+   "nota": "Calco de \"apply to\": postularse."
+  },
+  {
+   "pattern": "en base a",
+   "replace": null,
+   "family": "calcos",
+   "label": "en base a",
+   "nota": "Mejor \"a partir de\" o \"según\"."
+  },
+  {
+   "pattern": "(?:me|nos) complace (?:anunciar|compartir|contarles)",
+   "replace": null,
+   "family": "anuncios",
+   "label": "me complace anunciar",
+   "nota": "Fórmula de comunicado. Decí la noticia en la primera línea."
+  },
+  {
+   "pattern": "(?:estoy|estamos) (?:muy )?(?:feliz|felices|emocionad[oa]s?|orgullos[oa]s?) de (?:anunciar|compartir|contarles)",
+   "replace": null,
+   "family": "anuncios",
+   "label": "estoy feliz de anunciar"
+  },
+  {
+   "pattern": "(?:tuve|tengo|tuvimos) (?:el honor|el privilegio|la oportunidad) de",
+   "replace": null,
+   "family": "anuncios",
+   "label": "tuve el honor de",
+   "nota": "Decí qué hiciste, sin la reverencia."
+  },
+  {
+   "pattern": "(?:con )?mucha humildad",
+   "replace": null,
+   "family": "anuncios",
+   "label": "con mucha humildad"
+  }
+ ],
+ "words": [
+  {
+   "find": "asimismo",
+   "replace": "también",
+   "family": "conectores"
+  },
+  {
+   "find": "por consiguiente",
+   "replace": "por eso",
+   "family": "conectores"
+  },
+  {
+   "find": "por ende",
+   "replace": "por eso",
+   "family": "conectores"
+  },
+  {
+   "find": "en consecuencia",
+   "replace": "por eso",
+   "family": "conectores"
+  },
+  {
+   "find": "indudablemente",
+   "replace": "sin duda",
+   "family": "conectores"
+  },
+  {
+   "find": "fundamentalmente",
+   "replace": "sobre todo",
+   "family": "conectores"
+  },
+  {
+   "find": "cabe destacar",
+   "replace": "",
+   "family": "conectores"
+  },
+  {
+   "find": "no obstante",
+   "replace": "pero",
+   "family": "conectores"
+  },
+  {
+   "pattern": "robust[oa]s?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "robusto"
+  },
+  {
+   "pattern": "crucial(?:es)?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "crucial"
+  },
+  {
+   "pattern": "innovador(?:a|es|as)?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "innovador",
+   "nota": "Mostrá qué es nuevo. El adjetivo no lo prueba."
+  },
+  {
+   "pattern": "disruptiv[oa]s?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "disruptivo"
+  },
+  {
+   "pattern": "transformador(?:a|es|as)?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "transformador"
+  },
+  {
+   "pattern": "vibrantes?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "vibrante"
+  },
+  {
+   "pattern": "sinergias?|sinérgic[oa]s?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "sinergia"
+  },
+  {
+   "pattern": "holístic[oa]s?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "holístico"
+  },
+  {
+   "pattern": "inestimables?|invaluables?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "invaluable"
+  },
+  {
+   "pattern": "sin (?:fisuras|costuras|fricciones)",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "sin fisuras",
+   "nota": "Calco de \"seamless\"."
+  },
+  {
+   "pattern": "de vanguardia",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "de vanguardia"
+  },
+  {
+   "pattern": "apasionad[oa]s? (?:por|de|con)",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "apasionado por",
+   "nota": "Tic de perfil. Mostrá la pasión con lo que hiciste."
+  },
+  {
+   "pattern": "emocionantes?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "emocionante"
+  },
+  {
+   "pattern": "increíbles?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "increíble"
+  },
+  {
+   "pattern": "poderos[oa]s?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "poderoso",
+   "nota": "Calco de \"powerful\"."
+  },
+  {
+   "pattern": "masiv[oa]s?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "masivo",
+   "nota": "Calco de \"massive\" cuando significa \"enorme\"."
+  },
+  {
+   "pattern": "significativ(?:o|a|os|as|amente)",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "significativo",
+   "nota": "Calco de \"significant\". Poné el número."
+  },
+  {
+   "pattern": "meticulos[oa]s?|meticulosamente",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "meticuloso"
+  },
+  {
+   "pattern": "multifacétic[oa]s?",
+   "replace": null,
+   "family": "adjetivos",
+   "label": "multifacético"
+  },
+  {
+   "pattern": "profundiz\\w*",
+   "replace": null,
+   "family": "verbos",
+   "label": "profundizar",
+   "nota": "Calco de \"delve\"."
+  },
+  {
+   "pattern": "ahond\\w*",
+   "replace": null,
+   "family": "verbos",
+   "label": "ahondar"
+  },
+  {
+   "pattern": "potenci(?:ar|an|ando|amos|ó|aron|ará|arán|amos)",
+   "replace": null,
+   "family": "verbos",
+   "label": "potenciar",
+   "nota": "Decí qué mejora y cuánto."
+  },
+  {
+   "pattern": "apalanc\\w*",
+   "replace": null,
+   "family": "verbos",
+   "label": "apalancar",
+   "nota": "Calco de \"leverage\" (salvo apalancamiento financiero)."
+  },
+  {
+   "pattern": "empoder\\w*",
+   "replace": null,
+   "family": "verbos",
+   "label": "empoderar"
+  },
+  {
+   "pattern": "elev(?:ar|á|a|an|ando) (?:tu|tus|el|la|los|las|su|sus|nuestro|nuestra)",
+   "replace": null,
+   "family": "verbos",
+   "label": "elevar tu...",
+   "nota": "Calco de \"elevate\"."
+  },
+  {
+   "pattern": "revolucion(?:ar|ando|ó|a|an|aron)",
+   "replace": null,
+   "family": "verbos",
+   "label": "revolucionar"
+  },
+  {
+   "pattern": "desbloque\\w*",
+   "replace": null,
+   "family": "verbos",
+   "label": "desbloquear",
+   "nota": "Calco de \"unlock\"."
+  },
+  {
+   "pattern": "resuen(?:a|an)|resonó",
+   "replace": null,
+   "family": "verbos",
+   "label": "resuena",
+   "nota": "Calco de \"resonate\"."
+  },
+  {
+   "pattern": "cautiv\\w*",
+   "replace": null,
+   "family": "verbos",
+   "label": "cautivar"
+  },
+  {
+   "pattern": "(?:exploraremos|vamos a explorar|exploremos)",
+   "replace": null,
+   "family": "verbos",
+   "label": "exploraremos"
+  },
+  {
+   "pattern": "subray(?:a|an|ar)",
+   "replace": null,
+   "family": "verbos",
+   "label": "subraya",
+   "nota": "Calco de \"underscore\"."
+  },
+  {
+   "pattern": "paradigmas?",
+   "replace": null,
+   "family": "sustantivos",
+   "label": "paradigma"
+  },
+  {
+   "pattern": "panorama",
+   "replace": null,
+   "family": "sustantivos",
+   "label": "panorama",
+   "nota": "Calco de \"landscape\"."
+  },
+  {
+   "pattern": "tapiz",
+   "replace": null,
+   "family": "sustantivos",
+   "label": "tapiz"
+  },
+  {
+   "pattern": "game[- ]?changers?",
+   "replace": null,
+   "family": "anglicismos",
+   "label": "game changer"
+  },
+  {
+   "pattern": "next level",
+   "replace": null,
+   "family": "anglicismos",
+   "label": "next level"
+  },
+  {
+   "pattern": "learnings",
+   "replace": null,
+   "family": "anglicismos",
+   "label": "learnings",
+   "nota": "\"aprendizajes\" o, mejor, decí cuál."
+  },
+  {
+   "pattern": "takeaways?",
+   "replace": null,
+   "family": "anglicismos",
+   "label": "takeaways"
+  },
+  {
+   "pattern": "deep[- ]dive",
+   "replace": null,
+   "family": "anglicismos",
+   "label": "deep dive"
+  },
+  {
+   "pattern": "low[- ]hanging fruits?",
+   "replace": null,
+   "family": "anglicismos",
+   "label": "low hanging fruit"
+  },
+  {
+   "pattern": "mindset",
+   "replace": null,
+   "family": "anglicismos",
+   "label": "mindset"
+  }
+ ],
+ "structures": [
+  {
+   "id": "no-es-solo",
+   "regex": "(?i)\\bno (?:es|son|se trata(?: de)?) (?:solo|sólo|solamente|simplemente|únicamente)(?: de)? [^.!?\\n—]{2,70}\\s*[,.;:—–-]\\s*(?:es|son|se trata de)\\b",
+   "name": "\"No es solo X, es Y\"",
+   "fix": "Decí lo que querés decir. Borrá la mitad que prepara el contraste."
+  },
+  {
+   "id": "no-es-x-es-y",
+   "regex": "(?i)\\bno es [^.!?\\n,]{2,40}\\.\\s+es [^.!?\\n]{2,60}[.!]",
+   "name": "\"No es X. Es Y.\"",
+   "fix": "La inversión es la marca. Empezá por Y."
+  },
+  {
+   "id": "no-se-trata",
+   "regex": "(?i)\\bno se trata de [^.!?\\n]{2,60}[.!;,]\\s*se trata de\\b",
+   "name": "\"No se trata de X, se trata de Y\"",
+   "fix": "Empezá por Y."
+  },
+  {
+   "id": "no-solo-sino",
+   "regex": "(?i)\\bno (?:solo|sólo|solamente)\\b[^.!?\\n]{2,80}\\bsino (?:también|que)\\b",
+   "name": "\"No solo X, sino también Y\"",
+   "fix": "Dos oraciones, o quedate con la mitad fuerte."
+  },
+  {
+   "id": "revelacion",
+   "regex": "(?im)^\\s*¿(?:y )?(?:el|la|lo|los|las) (?:resultado|resultados|clave|mejor|peor|truco|secreto|problema|diferencia|respuesta|ironía|lección|moraleja)\\?\\s*$|^\\s*¿(?:por qué|sabés qué|sabes qué|cómo|y ahora)\\?\\s*$",
+   "name": "Pregunta-revelación en una línea (\"¿El resultado?\")",
+   "fix": "Respondé en la misma oración. No escenifiques el giro."
+  },
+  {
+   "id": "spoiler",
+   "regex": "(?i)\\b(?:spoiler(?: alert)?|alerta de spoiler|plot twist)\\s*:",
+   "name": "\"Spoiler:\" / \"Plot twist:\"",
+   "fix": "Si es un giro, se nota solo."
+  },
+  {
+   "id": "anuncio",
+   "regex": "(?i)\\b(?:esto es lo que (?:aprendí|aprendimos|descubrí|descubrimos)|te cuento (?:lo que|cómo|por qué)|(?:acá|aquí) (?:va|van) (?:lo que|mis|las|los)|d[eé]jame (?:explicarte|contarte)|hilo\\s*🧵|l[eé]e(?:lo)? (?:eso )?(?:de nuevo|otra vez)|leelo (?:de nuevo|otra vez))",
+   "name": "Anuncio en vez de contenido (\"Esto es lo que aprendí\")",
+   "fix": "Decí la lección. Salteá el anuncio."
+  },
+  {
+   "id": "apertura-anuncio",
+   "regex": "(?im)^\\s*hoy (?:quiero (?:hablar|compartir|contar)|vengo a|les traigo|te traigo)",
+   "name": "Apertura \"Hoy quiero hablar de...\"",
+   "fix": "La primera línea es el gancho. Empezá por el hecho."
+  },
+  {
+   "id": "triada",
+   "regex": "(?i)\\b\\w+, \\w+ y \\w+\\.",
+   "min": 1,
+   "name": "Tríada de tres palabras",
+   "fix": "Dos o cuatro. Tres es el ritmo por defecto del modelo."
+  },
+  {
+   "id": "emoji-cohete",
+   "regex": "[\\U0001F680\\U0001F525\\U0001F4A1\\u2728\\U0001F3AF\\U0001F64C]",
+   "name": "Emoji de manual (cohete, fuego, foco, brillos, diana, manos)",
+   "fix": "Uno como máximo, y que no sea de estos."
+  },
+  {
+   "id": "emoji-vinetas",
+   "regex": "(?m)^\\s*(?:✅|👉|🔹|🔸|➡️|➡|✔️|✔|📌|💡|🚀|🔥|⭐)\\s?",
+   "min": 3,
+   "name": "Lista con emojis como viñetas",
+   "fix": "Guiones simples. Las viñetas de emoji son el uniforme de la IA en LinkedIn."
+  },
+  {
+   "id": "hashtag-muro",
+   "regex": "(?:#\\w+[ \\t]*){4,}",
+   "name": "Muro de hashtags (4+)",
+   "fix": "LinkedIn ya no rankea por hashtags. Cero a dos, al final."
+  },
+  {
+   "id": "cebo",
+   "regex": "(?i)¿(?:qué|que) (?:opinás|opinan|opinas|piensan|pensás|piensas)\\?|¿(?:estás|están|estas) de acuerdo\\?|¿coincid(?:ís|en|es)\\?|¿a alguien más le (?:pasa|pasó)\\?|(?:contame|cuéntame|cuéntenme|cuéntanme) en (?:los )?comentarios|d[eé]j(?:a|á|en)(?:me)? (?:tu|su) opinión|etiquet(?:á|a|en) a (?:alguien|un amigo|una amiga|quien)|dale like si|compart(?:í|e|an) si",
+   "name": "Cebo de interacción",
+   "fix": "Hacé una pregunta que solo este post podría hacer, sobre lo específico de arriba."
+  },
+  {
+   "id": "comenta-palabra",
+   "regex": "(?i)\\bcoment(?:á|a|en|ad)\\s+[\\\"“'«]?[A-ZÁÉÍÓÚÑ0-9]{2,}[\\\"”'»]?\\s+y te (?:lo|la|los|las) (?:envío|mando|paso)",
+   "name": "\"Comentá PALABRA y te lo mando\"",
+   "fix": "Es el formato de cebo más reconocible. Dejá el recurso directo en el primer comentario."
+  },
+  {
+   "id": "cierre-ensayo",
+   "regex": "(?im)^\\s*(?:en resumen|en conclusión|en definitiva|para concluir|para cerrar|en síntesis)\\b",
+   "name": "Cierre de ensayo (\"En resumen...\")",
+   "fix": "Un post no necesita párrafo de conclusión."
+  },
+  {
+   "id": "apertura-comentario",
+   "regex": "(?im)^\\s*(?:excelente (?:post|aporte|reflexión|publicación)|gran (?:post|aporte|reflexión)|muy buen (?:punto|post|aporte)|totalmente de acuerdo|me encant[óo]|qué buena reflexión|gracias por compartir|coincido (?:100|totalmente))",
+   "name": "Apertura de comentario invisible (\"Excelente post\", \"Totalmente de acuerdo\")",
+   "fix": "Nadie lee esas palabras. Empezá por tu dato, tu caso o tu desacuerdo."
+  },
+  {
+   "id": "como-ia",
+   "regex": "(?i)\\bcomo (?:un )?modelo de lenguaje\\b|\\bcomo (?:una )?(?:ia|inteligencia artificial),? no (?:tengo|puedo)\\b",
+   "name": "Autorreferencia del modelo",
+   "fix": "Borrá la oración."
+  },
+  {
+   "id": "title-case",
+   "regex": "\\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+ (?:De|Del|La|Las|Los|El|En|Con|Para|Por|Tu|Tus|Su|Sus|Y|Que|Un|Una|Al) [A-ZÁÉÍÓÚÑ][a-záéíóúñ]+",
+   "name": "Mayúsculas de título en inglés (\"Cómo Escalar Tu Equipo De Datos\")",
+   "fix": "En español solo va mayúscula la primera palabra. Es un calco directo del inglés."
+  }
+ ],
+ "registros": {
+  "voseo": [
+   "vos",
+   "tenés",
+   "podés",
+   "sabés",
+   "querés",
+   "hacés",
+   "sos",
+   "decís",
+   "venís",
+   "vivís",
+   "sentís",
+   "pensás",
+   "usás",
+   "necesitás",
+   "buscás",
+   "trabajás",
+   "empezás",
+   "conocés",
+   "entendés",
+   "creés",
+   "leés",
+   "mirá",
+   "fijate",
+   "contame",
+   "decime",
+   "avisame",
+   "escribime",
+   "mandame",
+   "probá",
+   "pensá",
+   "acordate",
+   "imaginate",
+   "animate",
+   "sumate"
+  ],
+  "tuteo": [
+   "tú",
+   "tienes",
+   "puedes",
+   "sabes",
+   "quieres",
+   "haces",
+   "eres",
+   "dices",
+   "vienes",
+   "vives",
+   "sientes",
+   "piensas",
+   "usas",
+   "necesitas",
+   "buscas",
+   "trabajas",
+   "empiezas",
+   "conoces",
+   "entiendes",
+   "crees",
+   "lees",
+   "fíjate",
+   "cuéntame",
+   "dime",
+   "avísame",
+   "escríbeme",
+   "mándame",
+   "acuérdate",
+   "imagínate",
+   "anímate",
+   "súmate"
+  ],
+  "vosotros": [
+   "vosotros",
+   "vosotras",
+   "os",
+   "tenéis",
+   "podéis",
+   "sabéis",
+   "queréis",
+   "hacéis",
+   "sois",
+   "habéis",
+   "estáis",
+   "mola",
+   "molan",
+   "guay",
+   "currar",
+   "curro",
+   "vale,"
+  ],
+  "usted": [
+   "usted"
+  ]
+ },
+ "oralidad": [
+  "la verdad",
+  "ojo",
+  "o sea",
+  "bueno,",
+  "igual",
+  "posta",
+  "che",
+  "obvio",
+  "un montón",
+  "en fin",
+  "ni hablar",
+  "tal cual",
+  "ponele",
+  "de una",
+  "nada,",
+  "ya sé",
+  "spoiler de verdad"
+ ]
+}

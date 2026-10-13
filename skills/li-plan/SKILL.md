@@ -1,94 +1,116 @@
 ---
 name: li-plan
 description: >-
-  Build the week on LinkedIn - what to post, when to post it, and who to engage
-  with. Use when the user says "plan my week", "what should I post", "content
-  calendar", "I have nothing to post about", or wants a posting schedule and an
-  engagement list.
+  Arma la semana en LinkedIn: qué publicar, cuándo, y con quién interactuar.
+  Usalo cuando el usuario dice "planificá mi semana", "¿qué publico?",
+  "calendario de contenido", "no tengo de qué hablar", o quiere un calendario
+  de publicación y una lista de interacción.
 ---
 
 # li-plan
 
-The control room. Everything else in this pack executes; this decides what
-gets executed. Run it once a week, on the same day.
+La sala de control. El resto del paquete ejecuta; esto decide qué se ejecuta.
+Correlo una vez por semana, el mismo día.
 
-## Input
+## Entrada
 
-If `~/.claude/linkedin/voice.md` and `log.md` exist, read them - the plan
-should not repeat a theme from the last fortnight. If they do not exist, ask
-for four things and write them down:
+Leé `~/.claude/linkedin/voice.md`, `territorio.md` y `log.md` si existen: el
+plan no debería repetir un ángulo de las últimas dos semanas, y todo tiene
+que caer dentro de los territorios. Si no existen, pedí cuatro cosas y
+anotalas:
 
-1. What the user sells, and to whom.
-2. The three or four themes they want to be known for.
-3. What actually happened this week - a client call, a number, a mistake, a
-   thing they built, an argument they had. This is where posts come from.
-4. Ten to twenty people or companies worth being visible to.
+1. Qué vende el usuario (servicio, producto, o a sí mismo si busca trabajo) y
+   a quién.
+2. Los dos o tres temas por los que quiere ser conocido. Si no los tiene
+   claros, corré `/li-territorio` primero.
+3. Qué pasó de verdad esta semana: una reunión con un cliente, un número, un
+   error, algo que construyó, una discusión. De ahí salen los posts.
+4. Diez a veinte personas o empresas con las que conviene ser visible.
 
-## What to post
+## Qué publicar
 
-Four posts a week beats seven. Consistency is a floor, not a target, and the
-fifth post of a week is almost always the weak one that drags the average.
+Tres o cuatro posts por semana le ganan a siete. La constancia es un piso, no
+una meta, y el quinto post de la semana casi siempre es el flojo que baja el
+promedio.
 
-Mix across the week, never two of the same type back to back:
+Mezclá a lo largo de la semana, nunca dos del mismo tipo seguidos:
 
-| type | share | job |
+| tipo | frecuencia | trabajo que hace |
 | --- | --- | --- |
-| **Proof** | 1 per week | something that happened, with a number |
-| **Opinion** | 1 per week | a position that could lose you followers |
-| **Teach** | 1 per week | one thing the reader can do today |
-| **Story** | 1 per fortnight | a scene with dialogue and a cost |
-| **Offer** | 1 per fortnight | what you sell, said plainly, no apology |
+| **Prueba** | 1 por semana | algo que pasó, con un número |
+| **Opinión** | 1 por semana | una postura que te puede costar seguidores |
+| **Enseñanza** | 1 por semana | algo que el lector puede hacer hoy |
+| **Historia** | 1 cada dos semanas | una escena con diálogo y un costo |
+| **Oferta** | 1 cada dos semanas | lo que vendés, dicho sin vueltas, sin pedir perdón |
+| **Seguimiento** | cuando toque | volver a una predicción con vencimiento (#23) o a un post viejo que cambiaste de opinión (#25) |
 
-For each slot give: the theme, the specific angle drawn from what actually
-happened this week, and the hook formula number from `li-post/hooks.json` that
-fits it. Not a topic - an angle. "AI" is not a plan. "The proposal we lost
-because our AI draft had an em dash in it" is a post.
+El **seguimiento** es nuevo y casi nadie lo hace: revisá `log.md` buscando
+predicciones con fecha que vencen este mes. Volver a una apuesta, acertada o
+no, es de los posts que más credibilidad construyen.
 
-## When to post
+Para cada lugar: el territorio, el ángulo concreto sacado de lo que pasó esta
+semana, y el número de fórmula de `li-post/hooks.json`. No un tema: un ángulo.
+"IA" no es un plan. "El modelo que apagamos porque cobranzas no entendía el
+número" es un post.
 
-Post when the user's audience is at a desk. For a B2B audience in one
-timezone, Tuesday to Thursday, 7:30-9:30am local, is the working default, with
-Monday afternoon and Friday morning as the second tier. Weekends are for
-personal-story posts or nothing.
+## Cuándo publicar
 
-But state this plainly: **the day and hour matter far less than whether the
-first line is good.** If the user is optimising posting times before their
-hooks work, they are polishing the wrong thing, and you should say so.
+Publicá cuando la audiencia está frente a la computadora. Las referencias que
+circulan (Sprout Social y otros) ubican lo mejor para B2B de martes a jueves,
+a media mañana y primera hora de la tarde, en la zona horaria de la audiencia;
+lunes temprano y fines de semana rinden menos.
 
-Anchor the times to their audience's timezone, not the user's, if those
-differ.
+**Para LatAm hay que hacer la cuenta de verdad**, que casi ninguna guía hace:
 
-## Who to engage with
+- Buenos Aires y São Paulo (UTC-3), Santiago (UTC-4/-3), Bogotá y Lima
+  (UTC-5), Ciudad de México (UTC-6), Madrid (UTC+1/+2). Un post a las 8:00 de
+  Buenos Aires sale a las 5:00 en México.
+- Si la audiencia es regional, una ventana de 9:30 a 11:00 en Buenos Aires cae
+  entre las 6:30 y las 9:00 del resto. Si es mayormente México, publicá desde
+  Argentina a media mañana de allá (mediodía o primera tarde en Buenos Aires).
+- El almuerzo en buena parte de LatAm es entre las 13 y las 15, y se scrollea.
+- Anclá siempre a la zona de la audiencia, no a la del usuario.
 
-Build a list of 10, split three ways:
+Pero decilo claro: **el día y la hora importan mucho menos que la primera
+línea.** Si el usuario optimiza horarios antes de que sus ganchos funcionen,
+está puliendo lo que no es, y hay que decírselo. Después de 4 a 6 semanas,
+`/li-audit` dice cuál es su horario con sus datos.
 
-- **5 reach** - people with an audience the user wants, whose posts they can
-  genuinely add to. Comment before they have 20 comments or nobody sees it.
-- **3 peers** - same level, same field. This is the group that reciprocates.
-- **2 buyers** - people who could actually buy. Comment on their posts for
-  weeks before any DM, and never pitch in a comment.
+## Con quién interactuar
 
-20 minutes a day, before posting, not after. Comments on other people's posts
-are what makes the user's own post land.
+Una lista de 10, en tres grupos:
 
-## Output
+- **5 de alcance**: gente con la audiencia que el usuario quiere, a cuyos
+  posts puede sumar de verdad. Comentá antes de que tengan 20 comentarios o no
+  te ve nadie.
+- **3 pares**: mismo nivel, mismo campo. Es el grupo que devuelve.
+- **2 compradores**: gente que podría contratar o comprar. Comentá sus posts
+  durante semanas antes de cualquier mensaje, y nunca hagas pitch en un
+  comentario.
+
+Rotá la lista cada semana. Interactuar siempre con las mismas personas a la
+misma hora es exactamente lo que LinkedIn busca para detectar pods.
+
+20 minutos por día, antes de publicar, no después.
+
+## Salida
 
 ```
-WEEK OF SEP 8
+SEMANA DEL 13 DE OCTUBRE  ·  audiencia: AR + MX + CO  ·  horas de Buenos Aires
 
-MON  engage only  (20 min, list below)
-TUE  8:15am  PROOF    #17 Time Anchor   - the 5hr -> 20min proposal rebuild
-WED  engage only
-THU  8:00am  OPINION  #1  Contrarian    - why we killed the discovery call
-FRI  8:30am  TEACH    #21 Direct Value  - the 4-line reopen email, given away
-SAT  -
-SUN  4:00pm  STORY    #9  Cold Open     - the "going with someone cheaper" email
+LUN  solo interacción  (20 min, lista abajo)
+MAR  10:15  PRUEBA       #22 Postmortem       - el modelo que aprobó lo que no debía
+MIÉ  solo interacción
+JUE  10:00  OPINIÓN      #1  Contracorriente  - por qué el equipo de datos no debería reportar al CFO
+VIE  10:30  ENSEÑANZA    #21 Valor directo    - la checklist de drift, completa en el post
+DOM  -
+SEGUIMIENTO  vence el 31/10 la predicción del 12/04 sobre agentes en banca. Agendado para la semana que viene.
 
-ENGAGE  (5 reach / 3 peers / 2 buyers)
+INTERACCIÓN  (5 alcance / 3 pares / 2 compradores)
   ...
 
-Say "write Tuesday" and I will draft it.
+Decí "escribí el martes" y lo redacto.
 ```
 
-Write the plan to `~/.claude/linkedin/plan.md` so the other skills can read it.
-Nothing is scheduled or posted anywhere - this is a plan, and the user runs it.
+Escribí el plan en `~/.claude/linkedin/plan.md` para que los otros skills lo
+lean. No se agenda ni se publica nada: es un plan, y lo corre el usuario.
