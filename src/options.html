@@ -15,19 +15,23 @@
     input, select, textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: inherit; }
     textarea { min-height: 80px; resize: vertical; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 16px; align-items: end; }
+    h2 { margin: 32px 0 4px; font-size: 16px; }
+    label.check { display: flex; gap: 8px; align-items: center; font-weight: 600; }
+    label.check input { width: auto; }
     .actions { display: flex; gap: 10px; align-items: center; margin-top: 24px; flex-wrap: wrap; }
     button { padding: 8px 18px; border-radius: 18px; font-family: inherit; font-size: 14px; font-weight: 600; line-height: 1.2; cursor: pointer; }
     .primary { background: var(--accent); color: #fff; border: 0; }
     .ghost { background: none; color: var(--accent); border: 1px solid var(--accent); }
     #status { color: var(--muted); }
     #status.error { color: #d0543a; }
-    @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } main { margin: 0; border-radius: 0; } }
+    @media (max-width: 560px) { .grid, .grid3 { grid-template-columns: 1fr; } main { margin: 0; border-radius: 0; } }
   </style>
 </head>
 <body>
 <main>
   <h1>LinkedIn Commenter</h1>
-  <p class="sub">Genera 3 borradores de comentario por post. Vos elegís, editás y publicás.</p>
+  <p class="sub">Lee tu feed, elige qué posts vale la pena comentar y te deja los comentarios listos. Publicar es un clic tuyo.</p>
 
   <label for="apiKey">API key de Anthropic</label>
   <p class="help">Se guarda solo en este navegador y se usa para llamar directo a api.anthropic.com. Sacala de console.anthropic.com.</p>
@@ -37,8 +41,8 @@
     <div>
       <label for="model">Modelo</label>
       <select id="model">
-        <option value="claude-opus-5">Claude Opus 5 (mejor calidad)</option>
-        <option value="claude-sonnet-5">Claude Sonnet 5 (más barato y rápido)</option>
+        <option value="claude-opus-5-5">Claude Opus 5.5 (mejor calidad)</option>
+        <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (la mitad de precio)</option>
       </select>
     </div>
     <div>
@@ -65,6 +69,30 @@
   <label for="examples">Comentarios tuyos de ejemplo (opcional)</label>
   <p class="help">Pegá 3 a 5 comentarios que hayas escrito vos. Es la mejor forma de que suene a vos.</p>
   <textarea id="examples" style="min-height: 120px"></textarea>
+
+  <h2>Ronda automática</h2>
+  <p class="help">Mientras navegás LinkedIn, la extensión lee los posts que cargan (sin hacer clics), elige los que valen un comentario y los deja en el botón 💬 de abajo a la derecha. Cada ronda de 8 posts cuesta unos centavos de dólar.</p>
+
+  <label class="check"><input id="autoRound" type="checkbox"> Hacer la ronda sola mientras navego</label>
+
+  <label for="topics">Temas en los que querés que te vean</label>
+  <p class="help">Uno por línea. Con esto decide qué posts comentar y cuáles saltear.</p>
+  <textarea id="topics" placeholder="Ej: ingeniería de datos en fintech&#10;modelos de riesgo de crédito&#10;liderar equipos técnicos chicos"></textarea>
+
+  <div class="grid3">
+    <div>
+      <label for="maxPerRound">Sugerencias por ronda</label>
+      <input id="maxPerRound" type="number" min="1" max="8">
+    </div>
+    <div>
+      <label for="maxPerDay">Máximo por día</label>
+      <input id="maxPerDay" type="number" min="1" max="50">
+    </div>
+    <div>
+      <label for="skipAbove">Saltear posts con más de N comentarios</label>
+      <input id="skipAbove" type="number" min="0">
+    </div>
+  </div>
 
   <div class="actions">
     <button class="primary" id="save">Guardar</button>

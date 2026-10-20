@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS } from "./prompt.js";
+import { DEFAULT_SETTINGS, MODELS } from "./prompt.js";
 
 const FIELDS = Object.keys(DEFAULT_SETTINGS);
 const $ = (id) => document.getElementById(id);
@@ -8,14 +8,25 @@ function setStatus(text, isError = false) {
   $("status").className = isError ? "error" : "";
 }
 
+function readField(f) {
+  const input = $(f);
+  if (input.type === "checkbox") return input.checked;
+  if (input.type === "number") return Number(input.value) || DEFAULT_SETTINGS[f];
+  return input.value.trim();
+}
+
 function readForm() {
-  return Object.fromEntries(FIELDS.map((f) => [f, $(f).value.trim()]));
+  return Object.fromEntries(FIELDS.map((f) => [f, readField(f)]));
 }
 
 async function load() {
   const stored = await chrome.storage.local.get(FIELDS);
   const settings = { ...DEFAULT_SETTINGS, ...stored };
-  for (const f of FIELDS) $(f).value = settings[f];
+  if (!MODELS.includes(settings.model)) settings.model = DEFAULT_SETTINGS.model;
+  for (const f of FIELDS) {
+    if ($(f).type === "checkbox") $(f).checked = settings[f];
+    else $(f).value = settings[f];
+  }
 }
 
 $("save").addEventListener("click", async () => {

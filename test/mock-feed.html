@@ -10,11 +10,27 @@
   .ql-editor { border:1px solid #ccc; border-radius:20px; padding:8px 12px; min-height:20px; }
 </style>
 <script>
+  // chrome.storage.local en memoria, con onChanged, para probar la ronda sin la extensión.
+  const __data = { apiKey: "sk-test", maxPerRound: 5, maxPerDay: 15, skipAbove: 40 };
+  const __listeners = [];
+  const storage = {
+    get: async (keys) => Object.fromEntries([].concat(keys).filter((k) => k in __data).map((k) => [k, structuredClone(__data[k])])),
+    set: async (obj) => {
+      const changes = {};
+      for (const [k, v] of Object.entries(obj)) { changes[k] = { newValue: v }; __data[k] = structuredClone(v); }
+      __listeners.forEach((fn) => fn(changes, "local"));
+    },
+  };
+  window.__data = __data;
   window.__msgs = [];
-  window.chrome = { runtime: { sendMessage: async (msg) => {
+  window.chrome = { storage: { local: storage, onChanged: { addListener: (fn) => __listeners.push(fn) } }, runtime: { sendMessage: async (msg) => {
     window.__msgs.push(msg);
+    if (msg.type === "badge" || msg.type === "openOptions") return { ok: true };
     await new Promise(r => setTimeout(r, 500));
-    return { ok: true, model: "claude-opus-5", comments: [
+    if (msg.type === "round") return { ok: true, model: "claude-opus-5-5", picks: msg.posts.map((p, i) => i === 0
+      ? { id: p.id, comentar: true, puntaje: 8, tipo: "comprobante", motivo: "Tema tuyo y tiene pocos comentarios.", text: "Nos pasó igual con el monorepo: el onboarding bajó, pero el CI pasó de 6 a 19 minutos hasta que lo hicimos incremental.", flags: [] }
+      : { id: p.id, comentar: i === 1, puntaje: 5, tipo: "pregunta", motivo: "Podés preguntar por el stack.", text: i === 1 ? "¿Qué versión de Airflow usan? Es crucial saberlo antes de aplicar." : "", flags: i === 1 ? [{ name: "crucial", fix: "Decí qué pasa si no se hace." }] : [] }) };
+    return { ok: true, model: "claude-opus-5-5", comments: [
       { angle: "aporte", text: "Lo del costo de onboarding lo vi igual: el primer mes se va en entender el stack, no en codear." },
       { angle: "pregunta", text: "¿Cómo medían ese 40%? ¿Tiempo hasta el primer PR o algo más fino?" },
       { angle: "experiencia", text: "Coincido a medias. En equipos chicos el monorepo ayuda, pero pasado cierto tamaño el CI se vuelve el cuello de botella." }
@@ -33,13 +49,14 @@
   <div class="bar feed-shared-social-action-bar">
     <span><button aria-label="React Like">Like</button></span>
     <span><button aria-label="Comment" onclick="openBox('box1')">Comment</button></span>
+    <span>3 comments</span>
     <span><button aria-label="Repost">Repost</button></span>
     <span><button aria-label="Send in a private message">Send</button></span>
   </div>
   <div class="comments-comments-list">
     <div class="comments-comment-item"><span dir="ltr">Este es un comentario ajeno bastante largo que NO debería leerse como parte del post, aunque sea largo largo largo largo largo largo largo largo largo largo largo largo.</span></div>
   </div>
-  <div class="comments-comment-box" id="box1" hidden><form><div class="ql-editor" contenteditable="true" role="textbox"></div><button type="submit">Comment</button></form></div>
+  <div class="comments-comment-box" id="box1" hidden><form onsubmit="event.preventDefault(); postComment(this)"><div class="ql-editor" contenteditable="true" role="textbox"></div><button type="submit" class="comments-comment-box__submit-button">Comment</button></form></div>
 </div>
 
 <!-- Post 2: sin clases conocidas, en español (fuerza heurísticas) -->
@@ -51,11 +68,27 @@
     <span><button aria-label="Comentar" onclick="openBox('box2')">Comentar</button></span>
     <span><button aria-label="Compartir">Compartir</button></span>
   </div>
-  <div id="box2" hidden><div contenteditable="true" role="textbox" class="ed2" style="border:1px solid #ccc;min-height:20px"></div></div>
+  <div id="box2" hidden><div contenteditable="true" role="textbox" class="ed2" style="border:1px solid #ccc;min-height:20px"></div><button onclick="postComment(this.parentElement)">Publicar</button></div>
+</div>
+
+<!-- Post 3: patrocinado, no debería entrar a la ronda -->
+<div class="card feed-shared-update-v2" data-urn="urn:li:activity:333">
+  <div class="update-components-actor"><span class="update-components-actor__title"><span aria-hidden="true">Herramienta SaaS</span></span><div>Promocionado</div></div>
+  <span class="update-components-text">Probá gratis 30 días la plataforma que automatiza todos tus reportes de ventas y marketing.</span>
+  <div class="bar"><span><button aria-label="React Like">Like</button></span><span><button aria-label="Comment">Comment</button></span><span><button aria-label="Repost">Repost</button></span></div>
 </div>
 
 <script>
   function openBox(id) { const b = document.getElementById(id); b.hidden = false; b.querySelector('[contenteditable]').focus(); }
+  // Imita a LinkedIn: al publicar, vacía la caja y agrega el comentario a la lista.
+  function postComment(scope) {
+    const ed = scope.querySelector('[contenteditable]');
+    const div = document.createElement('div');
+    div.className = 'posted';
+    div.textContent = ed.innerText.trim();
+    scope.closest('.card').append(div);
+    ed.textContent = '';
+  }
 </script>
 <script src="../dist/content.js"></script>
 </body></html>
