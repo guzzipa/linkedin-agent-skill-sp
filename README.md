@@ -144,16 +144,31 @@ npm run sync-lexicon   # trae los léxicos de ../linkedin-agent-skill-sp
 
 Si [linkedin-agent-skill-sp](https://github.com/guzzipa/linkedin-agent-skill-sp) está clonado en la carpeta de al lado (o en `SKILLS_REPO`), `npm test` también compara el humanizador en JS contra el de Python.
 
-**Probar sin entrar a LinkedIn:** `test/mock-feed.html` imita el feed. Tiene un post con las clases de LinkedIn, uno sin ellas y uno patrocinado, y simula la API y `chrome.storage`.
+**Probar sin entrar a LinkedIn:** `test/mock-feed.html` imita el feed y simula la API y `chrome.storage`. Tiene cuatro posts:
+- uno con las clases del feed viejo de LinkedIn;
+- uno sin clases;
+- uno patrocinado;
+- uno armado como el feed nuevo (2026): sin clases legibles, cada post es un `role="listitem"`, el número de comentarios va adentro del botón y el botón de publicar aparece al escribir.
 
 ```bash
 npm run build
 python3 -m http.server 8765
 ```
 
-Abrí `http://localhost:8765/test/mock-feed.html`: a los 8 segundos aparecen dos sugerencias.
+Abrí `http://localhost:8765/test/mock-feed.html`: a los 8 segundos aparecen tres sugerencias.
 
-**Si LinkedIn cambia su HTML:**
+**Si LinkedIn cambia su HTML.** Desde 2026 el feed casi no tiene clases legibles. Lo que la extensión usa hoy para orientarse:
+
+| Qué | Cómo lo encuentra |
+| --- | --- |
+| El post | `[role="listitem"]` |
+| Su ID | `componentkey="update-card-…"` |
+| El texto | `[data-testid="expandable-text-box"]` |
+| El autor | el `aria-label` del menú del post ("…post by {autor}") |
+| La cantidad de comentarios | el número adentro del botón **Comment** |
+| La caja de comentario | `[contenteditable][role="textbox"]`, que se monta recién cuando está en pantalla |
+
+Dónde mirar si algo se rompe:
 - **No aparece ✨ Sugerir:** revisá `COMMENT_RE`, `REACT_RE` y `findActionBar`, que buscan los botones por su `aria-label`.
 - **Lee mal el post:** revisá `extractPost`. En **Sugerir**, el texto leído se puede corregir a mano.
 - **No encuentra la caja o el botón de publicar:** revisá `findEditor` y `findSubmit`.

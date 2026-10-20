@@ -27,7 +27,9 @@
     window.__msgs.push(msg);
     if (msg.type === "badge" || msg.type === "openOptions") return { ok: true };
     await new Promise(r => setTimeout(r, 500));
-    if (msg.type === "round") return { ok: true, model: "claude-opus-5-5", picks: msg.posts.map((p, i) => i === 0
+    if (msg.type === "round") return { ok: true, model: "claude-opus-5-5", picks: msg.posts.map((p, i) => p.id.startsWith("ck:")
+      ? { id: p.id, comentar: true, puntaje: 7, tipo: "comprobante", motivo: "Feed nuevo.", text: "Nos pasó parecido: lo que movió la aguja fue la velocidad de reacción, no el AUC.", flags: [] }
+      : i === 0
       ? { id: p.id, comentar: true, puntaje: 8, tipo: "comprobante", motivo: "Tema tuyo y tiene pocos comentarios.", text: "Nos pasó igual con el monorepo: el onboarding bajó, pero el CI pasó de 6 a 19 minutos hasta que lo hicimos incremental.", flags: [] }
       : { id: p.id, comentar: i === 1, puntaje: 5, tipo: "pregunta", motivo: "Podés preguntar por el stack.", text: i === 1 ? "¿Qué versión de Airflow usan? Es crucial saberlo antes de aplicar." : "", flags: i === 1 ? [{ name: "crucial", fix: "Decí qué pasa si no se hace." }] : [] }) };
     return { ok: true, model: "claude-opus-5-5", comments: [
@@ -78,6 +80,41 @@
   <div class="bar"><span><button aria-label="React Like">Like</button></span><span><button aria-label="Comment">Comment</button></span><span><button aria-label="Repost">Repost</button></span></div>
 </div>
 
+<!-- Post 4: el feed nuevo de LinkedIn (2026): sin clases legibles, cada post es un listitem,
+     el número de comentarios va adentro del botón y el botón de publicar aparece al escribir. -->
+<div role="list" data-testid="mainFeed">
+  <div role="listitem" componentkey="update-card-focusMOCK444" class="card">
+    <div><button aria-label="Open control menu for post by María López">···</button> <a href="/in/maria">María López</a></div>
+    <span data-testid="expandable-text-box">Pasamos el modelo de churn de batch diario a streaming. La precisión subió poco, pero el equipo de retención ahora llama el mismo día y eso cambió todo.</span>
+    <div class="bar">
+      <button aria-label="Reaction button state: no reaction"><span>12</span></button>
+      <button aria-label="Comment" onclick="openNewBox()"><span>5</span></button>
+      <button aria-label="Repost"><span>1</span></button>
+    </div>
+    <div id="box4"></div>
+  </div>
+</div>
+
+<script>
+  // Imita el feed nuevo: la caja se monta tarde y el botón "Comment" aparece cuando hay texto.
+  function openNewBox() {
+    setTimeout(() => {
+      const box = document.getElementById('box4');
+      if (box.querySelector('[contenteditable]')) return;
+      box.innerHTML = '<div><div><div><div><div><div contenteditable="true" role="textbox" aria-label="Text editor for creating comment" style="border:1px solid #ccc;min-height:20px"></div></div></div></div></div><span class="tools"><button aria-label="Show Emoji Picker">🙂</button></span></div>';
+      const ed = box.querySelector('[contenteditable]');
+      ed.addEventListener('input', () => {
+        const tools = box.querySelector('.tools');
+        if (ed.innerText.trim() && !tools.querySelector('.send')) {
+          const send = document.createElement('button');
+          send.className = 'send'; send.textContent = 'Comment';
+          send.onclick = () => postComment(box);
+          tools.append(send);
+        }
+      });
+    }, 800);
+  }
+</script>
 <script>
   function openBox(id) { const b = document.getElementById(id); b.hidden = false; b.querySelector('[contenteditable]').focus(); }
   // Imita a LinkedIn: al publicar, vacía la caja y agrega el comentario a la lista.

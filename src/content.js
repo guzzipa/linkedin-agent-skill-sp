@@ -25,7 +25,8 @@
   function findPostContainer(actionBar) {
     return (
       actionBar.closest(
-        '[data-urn*="activity"], [data-urn*="ugcPost"], [data-id*="urn:li:activity"], .feed-shared-update-v2, [role="article"], article'
+        // El feed nuevo de LinkedIn (2026) no tiene clases legibles: cada post es un listitem.
+        '[data-urn*="activity"], [data-urn*="ugcPost"], [data-id*="urn:li:activity"], .feed-shared-update-v2, [role="article"], article, [role="listitem"]'
       ) || actionBar.parentElement?.parentElement?.parentElement
     );
   }
@@ -44,6 +45,7 @@
       if (bar.querySelector(".lic-btn")) continue;
       const container = findPostContainer(bar);
       if (!container) continue;
+      container.licCommentBtn = btn;
       registerPost(container, btn);
 
       const ours = document.createElement("button");
@@ -83,12 +85,15 @@
       .trim();
   }
 
-  // ¿Está dentro de la sección de comentarios del post? (LinkedIn usa el prefijo BEM "comments-").
-  function inComments(el, container) {
+  // ¿Está dentro de la sección de comentarios del post? El feed viejo usa el prefijo BEM
+  // "comments-"; en el nuevo no hay clases, pero los comentarios van después de la barra de acciones.
+  function inComments(el, container, { byPosition = true } = {}) {
     for (let n = el; n && n !== container; n = n.parentElement) {
       if (typeof n.className === "string" && /\bcomments-/.test(n.className)) return true;
     }
-    return false;
+    if (!byPosition) return false;
+    const btn = container.licCommentBtn;
+    return !!btn && !btn.contains(el) && !!(btn.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING);
   }
 
   async function extractPost(container, { expand = true } = {}) {
@@ -105,6 +110,7 @@
     }
 
     const known = [
+      '[data-testid="expandable-text-box"]',
       ".update-components-text",
       ".feed-shared-inline-show-more-text",
       ".feed-shared-update-v2__description",
@@ -126,6 +132,12 @@
   }
 
   function extractAuthor(container) {
+    // Feed nuevo: el menú del post dice "Open control menu for post by {autor}".
+    for (const b of container.querySelectorAll("button[aria-label]")) {
+      if (inComments(b, container)) continue;
+      const m = b.getAttribute("aria-label").match(/(?:post by|publicación de)\s+(.+)$/i);
+      if (m) return m[1].trim();
+    }
     const el =
       container.querySelector(
         '.update-components-actor__title span[aria-hidden="true"], .update-components-actor__name span[aria-hidden="true"], .update-components-actor__title, .update-components-actor__name'
@@ -162,16 +174,25 @@
     return null;
   }
 
+  // El portapapeles falla si la pestaña no tiene foco; no es motivo para cortar el flujo.
+  async function copy(text) {
+    try {
+      await copy(text);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function insertComment({ container, commentBtn }, text) {
     let editor = findEditor(container);
     if (!editor) {
+      // En el feed nuevo la caja se monta recién cuando esa zona está en pantalla.
+      commentBtn.scrollIntoView({ block: "center" });
       commentBtn.click();
-      editor = await waitFor(() => findEditor(container));
+      editor = await waitFor(() => findEditor(container), 10000);
     }
-    if (!editor) {
-      await navigator.clipboard.writeText(text);
-      return "copied";
-    }
+    if (!editor) return (await copy(text)) ? "copied" : "failed";
     editor.focus();
     const range = document.createRange();
     range.selectNodeContents(editor);
@@ -241,21 +262,29 @@
     if (panel) return panel;
     const host = el("div", { id: "lic-panel-host" });
     const root = host.attachShadow({ mode: "open" });
-    root.innerHTML = `<style>${PANEL_CSS}</style>
-      <div class="wrap" role="dialog" aria-label="Comentarios sugeridos">
-        <header><strong>Comentarios sugeridos</strong><button class="x" title="Cerrar (Esc)">×</button></header>
-        <div class="body">
-          <div class="meta"></div>
-          <details><summary>Texto del post que leí (editable)</summary><textarea class="post"></textarea></details>
-          <div class="row">
-            <input class="hint" placeholder="Indicación opcional: ej. mencioná que lo usé en producción">
-            <button class="primary gen">Generar</button>
-          </div>
-          <div class="status" aria-live="polite"></div>
-          <div class="opts"></div>
-        </div>
-        <footer><span>Revisá el texto y publicalo vos.</span><a class="cfg">Configuración</a></footer>
-      </div>`;
+    // Todo con createElement: LinkedIn sanitiza lo que se asigna por innerHTML y se come el <style>.
+    const close = el("button", { className: "x", title: "Cerrar (Esc)", textContent: "×" });
+    const cfg = el("a", { className: "cfg", textContent: "Configuración" });
+    root.append(
+      el("style", { textContent: PANEL_CSS }),
+      el("div", { className: "wrap", role: "dialog", ariaLabel: "Comentarios sugeridos" }, [
+        el("header", {}, [el("strong", { textContent: "Comentarios sugeridos" }), close]),
+        el("div", { className: "body" }, [
+          el("div", { className: "meta" }),
+          el("details", {}, [
+            el("summary", { textContent: "Texto del post que leí (editable)" }),
+            el("textarea", { className: "post" }),
+          ]),
+          el("div", { className: "row" }, [
+            el("input", { className: "hint", placeholder: "Indicación opcional: ej. mencioná que lo usé en producción" }),
+            el("button", { className: "primary gen", textContent: "Generar" }),
+          ]),
+          el("div", { className: "status", ariaLive: "polite" }),
+          el("div", { className: "opts" }),
+        ]),
+        el("footer", {}, [el("span", { textContent: "Revisá el texto y publicalo vos." }), cfg]),
+      ])
+    );
     const $ = (s) => root.querySelector(s);
     panel = {
       host,
@@ -267,8 +296,8 @@
       status: $(".status"),
       opts: $(".opts"),
     };
-    $(".x").addEventListener("click", closePanel);
-    $(".cfg").addEventListener("click", () => send({ type: "openOptions" }));
+    close.addEventListener("click", closePanel);
+    cfg.addEventListener("click", () => send({ type: "openOptions" }));
     panel.gen.addEventListener("click", generate);
     panel.hint.addEventListener("keydown", (e) => e.key === "Enter" && generate());
     // Que las teclas no disparen los atajos de LinkedIn mientras escribís en el panel.
@@ -354,14 +383,16 @@
       const ctx = current;
       const result = await insertComment(ctx, area.value.trim());
       setStatus(
-        result === "inserted"
-          ? "Listo: quedó en la caja de comentario. Revisalo y tocá Publicar."
-          : "No encontré la caja de comentario; lo copié al portapapeles."
+        {
+          inserted: "Listo: quedó en la caja de comentario. Revisalo y tocá Publicar.",
+          copied: "No encontré la caja de comentario; lo copié al portapapeles.",
+          failed: "No encontré la caja de comentario. Copiá el texto y pegalo a mano.",
+        }[result]
       );
     });
     const copy = el("button", { className: "ghost", textContent: "Copiar" });
     copy.addEventListener("click", async () => {
-      await navigator.clipboard.writeText(area.value.trim());
+      await copy(area.value.trim());
       setStatus("Copiado al portapapeles.");
     });
 
@@ -388,6 +419,7 @@
   let roundBusy = false;
   let roundStatus = "";
   let queuePanel = null;
+  let publishing = 0; // mientras haya uno en curso no se repinta la cola (perdería su estado)
   const store = chrome.storage.local;
   const today = () => new Date().toISOString().slice(0, 10);
 
@@ -396,16 +428,30 @@
       container.getAttribute("data-urn") ||
       container.getAttribute("data-id") ||
       container.querySelector("[data-urn]")?.getAttribute("data-urn");
-    return urn || null;
+    if (urn) return urn;
+    // Feed nuevo: el listitem del post tiene componentkey="update-card-focus{id}".
+    const key = container.getAttribute("componentkey");
+    return key && /^update-card/.test(key) ? `ck:${key}` : null;
   }
 
   function postUrl(id) {
     return /^urn:li:/.test(id) ? `https://www.linkedin.com/feed/update/${id}/` : location.href;
   }
 
+  function parseCount(t) {
+    const m = (t || "").replace(/\s/g, "").match(/^(\d[\d.,]*)([KkM])?$/);
+    if (!m) return null;
+    if (!m[2]) return parseInt(m[1].replace(/[.,]/g, ""), 10);
+    return Math.round(parseFloat(m[1].replace(",", ".")) * (m[2] === "M" ? 1e6 : 1e3));
+  }
+
   function commentCount(container) {
+    // Feed nuevo: el número está adentro del propio botón "Comentar".
+    const own = parseCount(container.licCommentBtn?.innerText.replace(/\u200b/g, ""));
+    if (own != null) return own;
     for (const n of container.querySelectorAll("button, span, a")) {
-      if (inComments(n, container)) continue;
+      // En el feed viejo el contador puede estar después del botón: acá solo vale la regla por clases.
+      if (inComments(n, container, { byPosition: false })) continue;
       const m = (n.getAttribute("aria-label") || n.innerText || "").match(/(\d[\d.,]*)\s+(comentarios?|comments?)\b/i);
       if (m) return parseInt(m[1].replace(/[.,]/g, ""), 10);
     }
@@ -506,20 +552,23 @@
   // del post, que se llama igual: por eso se busca subiendo desde la caja, no en todo el post.
   function findSubmit(ctx, editor) {
     const bar = findActionBar(ctx.commentBtn);
-    let scope = editor.closest("form");
-    for (let n = editor.parentElement, i = 0; !scope && n && n !== ctx.container && i < 5; n = n.parentElement, i++) {
+    // Ojo: un <button> sin atributo type vale type === "submit"; por eso se mira el atributo.
+    const isSubmit = (b) =>
+      b.classList.contains("comments-comment-box__submit-button") ||
+      /^(publicar|comentar|post|comment)$/i.test(labelOf(b)) ||
+      b.getAttribute("type") === "submit";
+    // Sube desde la caja: en el feed nuevo, el botón aparece recién cuando hay texto, unos
+    // seis niveles arriba, al lado de los de emoji y GIF.
+    for (let n = editor.parentElement, i = 0; n && n !== ctx.container && i < 10; n = n.parentElement, i++) {
       if (bar && n.contains(bar)) break;
-      if (n.querySelector("button")) scope = n;
+      const candidates = [...n.querySelectorAll("button")].filter(
+        (b) => isVisible(b) && b !== ctx.commentBtn && !b.closest(".lic-btn") && isSubmit(b)
+      );
+      // Si hay varios, gana el que se llama "Publicar"/"Comment" antes que un type=submit cualquiera.
+      const found = candidates.find((b) => /^(publicar|comentar|post|comment)$/i.test(labelOf(b))) || candidates[0];
+      if (found) return found;
     }
-    if (!scope) return null;
-    const buttons = [...scope.querySelectorAll("button")].filter(
-      (b) => isVisible(b) && b !== ctx.commentBtn && !(bar && bar.contains(b)) && !b.closest(".lic-btn")
-    );
-    return (
-      buttons.find((b) => b.classList.contains("comments-comment-box__submit-button")) ||
-      buttons.find((b) => b.type === "submit") ||
-      buttons.find((b) => /^(publicar|comentar|post|comment)$/i.test(labelOf(b)))
-    );
+    return null;
   }
 
   async function publish(item, text) {
@@ -530,7 +579,9 @@
       return { ok: false, msg: "El post ya no está en esta página: copié el comentario y lo abrí en otra pestaña." };
     }
     const result = await insertComment(ctx, text);
-    if (result !== "inserted") return { ok: false, msg: "No encontré la caja de comentario; lo copié al portapapeles." };
+    if (result !== "inserted") {
+      return { ok: false, msg: result === "copied" ? "No encontré la caja de comentario; lo copié al portapapeles." : "No encontré la caja de comentario. Abrí el post y pegalo a mano." };
+    }
     const editor = findEditor(ctx.container);
     const submit = editor && (await waitFor(() => {
       const b = findSubmit(ctx, editor);
@@ -573,7 +624,7 @@
     if (queuePanel) return queuePanel;
     const host = el("div", { id: "lic-queue-host" });
     const root = host.attachShadow({ mode: "open" });
-    root.innerHTML = `<style>${QUEUE_CSS}</style><div class="slot"></div>`;
+    root.append(el("style", { textContent: QUEUE_CSS }), el("div", { className: "slot" }));
     root.addEventListener("keydown", (e) => {
       e.stopPropagation();
       if (e.key === "Escape") toggleQueue(false);
@@ -599,8 +650,8 @@
       q.slot.replaceChildren(btn);
       return;
     }
-    // No repintar mientras escribís en una tarjeta.
-    if (q.root.activeElement?.tagName === "TEXTAREA") return;
+    // No repintar mientras escribís en una tarjeta ni mientras se publica una.
+    if (q.root.activeElement?.tagName === "TEXTAREA" || publishing) return;
 
     const published = d.log.filter((l) => new Date(l.at).toISOString().slice(0, 10) === today()).length;
     const close = el("button", { className: "x", title: "Cerrar (Esc)", textContent: "×" });
@@ -654,7 +705,15 @@
       if (!text) return;
       pub.disabled = true;
       pub.textContent = "Publicando…";
-      const r = await publish(item, text);
+      let r;
+      publishing++;
+      try {
+        r = await publish(item, text);
+      } catch (err) {
+        r = { ok: false, msg: `Algo falló: ${err.message}` };
+      } finally {
+        publishing--;
+      }
       if (r.ok) {
         await updateItem(item.id, { status: "publicado" }, item.author || "");
         area.blur();
