@@ -7,7 +7,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { humanize, pyRegex } from "../src/humanize.js";
 
-const SKILLS = join(import.meta.dirname, "..", "..", "linkedin-agent-skill-sp");
+const SKILLS = process.env.SKILLS_REPO || join(import.meta.dirname, "..", "..", "linkedin-agent-skill-sp");
 const PY = join(SKILLS, "skills", "li-human", "humanize.py");
 const FIX = join(SKILLS, "tests", "fixtures");
 const IGNORAR = new Set(["uniforme", "broetry"]); // chequeos de post largo que la extensión no corre

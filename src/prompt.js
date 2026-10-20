@@ -4,7 +4,7 @@ export const DEFAULT_SETTINGS = {
   apiKey: "",
   model: "claude-opus-5-5",
   persona: "",
-  tone: "Cercano y directo, como alguien que sabe del tema y habla de igual a igual. Si el post está en español, usá español rioplatense (vos).",
+  tone: "Cercano y directo, como alguien que sabe del tema y habla de igual a igual. Si el post está en español, usá español neutro (tú), salvo que mis comentarios de ejemplo muestren que uso vos o usted.",
   language: "auto",
   rules: "",
   examples: "",
