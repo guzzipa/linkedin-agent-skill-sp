@@ -11,6 +11,7 @@ Mientras bajás por el feed, lee los posts, elige los que vale la pena comentar 
 - **Elige por vos.** Saltea publicidad, avisos sin contenido, temas delicados y posts donde no tenés nada concreto para sumar.
 - **Escribe como una persona.** Usa 10 tipos de comentario (sumar un dato, el caso que falta, desacuerdo respetuoso, la pregunta de verdad…), nunca "¡Excelente post!", y solo usa datos tuyos que vos le diste.
 - **Le saca la cara de IA.** Cada comentario pasa por un humanizador que elimina rayas largas, comillas curvas y caracteres invisibles, y marca con ⚠ las frases de manual ("crucial", "No es solo X, es Y") para que las cambies.
+- **Aprende de vos.** Cuando editás un comentario antes de publicarlo o descartás una sugerencia, toma nota. Con el tiempo los borradores salen más parecidos a como escribís.
 - **Nada se publica sin tu clic.** Ver más abajo por qué.
 
 Funciona en español y en inglés: comenta en el idioma de cada post.
@@ -66,6 +67,7 @@ Tocá el ícono de la extensión para abrir la configuración. Lo que completes 
 | **Tono** | Cómo hablás. Si escribís con vos o con usted, decilo acá. |
 | **Comentarios tuyos de ejemplo** | 3 a 5 comentarios que hayas escrito vos. Es lo que más ayuda a que suene a vos. |
 | **Temas en los que querés que te vean** | Uno por línea. Con esto decide qué posts comentar. Si lo dejás vacío, usa "Quién sos". |
+| **Lo que aprendió de vos** | Las reglas que fue sacando de tus correcciones. Las podés editar o borrar. Ver [Aprende de tus correcciones](#aprende-de-tus-correcciones). |
 | **Sugerencias por ronda** | Cuántos comentarios como máximo te propone por cada tanda de posts (5 por defecto). |
 | **Máximo por día** | Cuando llegás, la ronda se frena hasta el día siguiente (15 por defecto). |
 | **Saltear posts con más de N comentarios** | En un post con 200 comentarios el tuyo no lo ve nadie (40 por defecto). |
@@ -90,6 +92,20 @@ Tocá **Guardar** y recargá LinkedIn.
 - **Buscar más posts**: baja unas pantallas para que LinkedIn cargue más y vuelve adonde estabas.
 - **Pausar ronda**: deja de leer el feed hasta que la reanudes.
 - **✨ Sugerir**: está en cada post y te da 3 borradores distintos para ese post en particular.
+
+### Aprende de tus correcciones
+
+Usá la extensión como siempre: si un comentario no te convence, editalo antes de tocar **Publicar**, o descartalo. Cada vez guarda:
+
+- **si lo editaste**, el borrador y tu versión final;
+- **si lo publicaste sin cambios**, el comentario, como muestra de tu voz;
+- **si lo descartaste**, el post y el motivo por el que te lo había propuesto.
+
+Con eso:
+
+1. En cada ronda le pasa a la IA tus últimas 6 correcciones, tus últimos 5 comentarios publicados y tus últimos 6 descartes.
+2. Cada 8 correcciones o descartes nuevos, resume lo que cambiás siempre en reglas, por ejemplo "Escribí 1 o 2 oraciones como máximo" o "No propongas avisos de empleo".
+3. Las reglas aparecen en la configuración, en **Lo que aprendió de vos**. Son texto común: corregilas, agregá las tuyas o tocá **Borrar lo aprendido** para empezar de cero. **Aprender ahora** las resume sin esperar a juntar 8.
 
 ### Qué saltea la ronda
 
@@ -116,7 +132,10 @@ Leé cada comentario antes de publicarlo. Sale con tu nombre, y un comentario qu
 - **Tu API key** queda guardada solo en tu navegador (`chrome.storage.local`). Viaja directo a `api.anthropic.com` o a `generativelanguage.googleapis.com`, según el proveedor que elegiste. No pasa por ningún otro servidor.
 - **Lo que se manda a la IA** para escribir los comentarios: el texto y el autor de los posts de tu feed, cuántos comentarios tienen, y lo que pusiste en la configuración. Ver la [política de privacidad de Anthropic](https://www.anthropic.com/legal/privacy) y los [términos de la API de Gemini](https://ai.google.dev/gemini-api/terms).
 - **Con Gemini en el nivel gratuito**, Google puede usar ese contenido (que incluye posts de otras personas) para mejorar sus productos. Si eso te molesta, usá Claude o el nivel pago de Gemini.
-- **Lo que queda en tu navegador:** la cola de sugerencias y un registro de a quién comentaste y cuándo, que se usa para no repetir autores.
+- **Lo que queda en tu navegador:**
+  - la cola de sugerencias;
+  - un registro de a quién comentaste y cuándo, para no repetir autores;
+  - tus últimas 200 correcciones y descartes, para aprender de vos. Algunas se mandan a la IA junto con cada ronda.
 
 ## Problemas frecuentes
 

@@ -381,7 +381,12 @@
     const insert = el("button", { className: "primary", textContent: "Insertar" });
     insert.addEventListener("click", async () => {
       const ctx = current;
-      const result = await insertComment(ctx, area.value.trim());
+      const final = area.value.trim();
+      const result = await insertComment(ctx, final);
+      recordFeedback({
+        kind: sameText(text, final) ? "elegido" : "editado",
+        post: (panel?.post.value || "").slice(0, 220), tipo: angle, original: text, final,
+      });
       setStatus(
         {
           inserted: "Listo: quedó en la caja de comentario. Revisalo y tocá Publicar.",
@@ -599,6 +604,17 @@
     return { ok: true };
   }
 
+  // Guarda cómo usaste cada sugerencia, para que la extensión aprenda de tus correcciones.
+  // Queda solo en este navegador (chrome.storage.local).
+  async function recordFeedback(entry) {
+    const { lic_feedback: fb = [] } = await store.get("lic_feedback");
+    fb.push({ at: Date.now(), ...entry });
+    await store.set({ lic_feedback: fb.slice(-200) });
+    send({ type: "learn" }); // resume reglas nuevas cuando se juntaron suficientes ejemplos
+  }
+
+  const sameText = (a, b) => (a || "").trim().replace(/\s+/g, " ") === (b || "").trim().replace(/\s+/g, " ");
+
   async function updateItem(id, patch, logAuthor) {
     const d = await getData();
     const queue = d.queue.map((q) => (q.id === id ? { ...q, ...patch } : q)).filter((q) => q.status === "pendiente");
@@ -702,6 +718,7 @@
     const skip = el("button", { className: "ghost", textContent: "Descartar" });
     skip.addEventListener("click", async () => {
       await updateItem(item.id, { status: "descartado" });
+      recordFeedback({ kind: "descartado", post: item.snippet, tipo: item.tipo, motivo: item.motivo, original: item.text });
       renderQueue();
     });
     const pub = el("button", { className: "primary", textContent: "Publicar" });
@@ -721,6 +738,10 @@
       }
       if (r.ok) {
         await updateItem(item.id, { status: "publicado" }, item.author || "");
+        recordFeedback({
+          kind: sameText(item.text, text) ? "publicado" : "editado",
+          post: item.snippet, tipo: item.tipo, original: item.text, final: text,
+        });
         area.blur();
         renderQueue();
       } else {

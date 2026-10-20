@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import {
   DEFAULT_SETTINGS, MODELS, OUTPUT_SCHEMA, ROUND_SCHEMA,
   buildRoundMessage, buildRoundSystemPrompt, buildSystemPrompt, buildUserMessage,
+  LEARN_SCHEMA, buildLearnMessage, buildLearnPrompt,
 } from "./prompt.js";
 import { humanize } from "./humanize.js";
 import { GEMINI_MODELS, GeminiError, callGemini } from "./gemini.js";
@@ -13,6 +14,41 @@ async function getSettings() {
   if (!MODELS.includes(settings.model)) settings.model = DEFAULT_SETTINGS.model;
   if (!GEMINI_MODELS.includes(settings.geminiModel)) settings.geminiModel = DEFAULT_SETTINGS.geminiModel;
   return settings;
+}
+
+// ---------- Aprender de tus correcciones ----------
+// lic_feedback: [{ at, kind: "editado" | "publicado" | "elegido" | "descartado", post, tipo, motivo, original, final }]
+
+const LEARN_EVERY = 8; // ejemplos nuevos para volver a resumir las reglas
+
+async function getLearning(settings) {
+  const { lic_feedback: fb = [] } = await chrome.storage.local.get("lic_feedback");
+  const recent = (kinds, n) => fb.filter((f) => kinds.includes(f.kind)).slice(-n);
+  return {
+    rules: settings.learnedRules,
+    edits: recent(["editado"], 6),
+    published: recent(["publicado", "editado"], 5).map((f) => f.final),
+    discards: recent(["descartado"], 6),
+  };
+}
+
+// Resume las correcciones en reglas cuando se juntaron LEARN_EVERY ejemplos nuevos (o si lo pedís).
+async function learn({ force = false } = {}) {
+  const settings = await getSettings();
+  const { lic_feedback: fb = [], lic_learned_at: since = 0 } = await chrome.storage.local.get(["lic_feedback", "lic_learned_at"]);
+  const useful = fb.filter((f) => f.kind === "editado" || f.kind === "descartado");
+  const fresh = useful.filter((f) => f.at > since);
+  if (!fresh.length || (!force && fresh.length < LEARN_EVERY)) {
+    return { rules: settings.learnedRules, examples: fb.length, pending: fresh.length, updated: false };
+  }
+  const { data } = await callJson(settings, {
+    system: buildLearnPrompt(settings.learnedRules),
+    user: buildLearnMessage(useful.slice(-30)),
+    schema: LEARN_SCHEMA,
+  });
+  const rules = data.reglas.map((r) => `- ${r.replace(/^[-•]\s*/, "").trim()}`).filter((r) => r.length > 3).slice(0, 10).join("\n");
+  await chrome.storage.local.set({ learnedRules: rules, lic_learned_at: Date.now() });
+  return { rules, examples: fb.length, pending: 0, updated: true };
 }
 
 function keyFor(settings) {
@@ -73,7 +109,7 @@ async function generate({ author, post, hint }) {
   if (!post?.trim()) throw new Error("No hay texto del post para comentar.");
 
   const { data, model } = await callJson(settings, {
-    system: buildSystemPrompt(settings),
+    system: buildSystemPrompt(settings, await getLearning(settings)),
     user: buildUserMessage({ author, post, hint }),
     schema: OUTPUT_SCHEMA,
   });
@@ -90,7 +126,7 @@ async function round({ posts }) {
   if (!posts?.length) return { picks: [] };
 
   const { data, model } = await callJson(settings, {
-    system: buildRoundSystemPrompt(settings),
+    system: buildRoundSystemPrompt(settings, await getLearning(settings)),
     user: buildRoundMessage(posts),
     schema: ROUND_SCHEMA,
   });
@@ -131,7 +167,7 @@ async function testConnection({ provider, apiKey, model }) {
 
 function describeError(err) {
   if (err instanceof GeminiError) return err.message;
-  if (err instanceof Anthropic.AuthenticationError) return "API key inválida.";
+  if (err instanceof Anthropic.AuthenticationError) return "API key de Anthropic inválida.";
   if (err instanceof Anthropic.PermissionDeniedError) return "La API key no tiene permiso para este modelo.";
   if (err instanceof Anthropic.RateLimitError) return "Límite de uso alcanzado. Probá en un rato.";
   if (err instanceof Anthropic.APIConnectionError) return "No pude conectar con la API de Anthropic.";
@@ -147,6 +183,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   const handlers = {
     generate: () => generate(msg),
     round: () => round(msg),
+    learn: () => learn(msg),
     badge: () => setBadge(msg),
     test: () => testConnection(msg),
     openOptions: () => chrome.runtime.openOptionsPage().then(() => ({})),
