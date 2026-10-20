@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Commenter",
+  "version": "0.2.1",
+  "description": "Hace tu ronda de comentarios en LinkedIn con Claude. Elige los posts, escribe los comentarios y vos publicás con un clic.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.anthropic.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options.html",
+  "action": {
+    "default_title": "LinkedIn Commenter: configuración"
+  },
+  "homepage_url": "https://github.com/guzzipa/linkedin-agent-skill-sp/tree/main/extension"
+}

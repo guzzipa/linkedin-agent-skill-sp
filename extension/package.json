@@ -1,0 +1,28 @@
+{
+  "name": "linkedin-commenter",
+  "version": "0.2.1",
+  "private": true,
+  "description": "Extensión de Chrome que hace tu ronda de comentarios en LinkedIn con Claude: elige qué posts comentar, escribe los comentarios y los publicás con un clic",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "test": "node --test test/humanize.test.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guzzipa/linkedin-agent-skill-sp.git",
+    "directory": "extension"
+  },
+  "homepage": "https://github.com/guzzipa/linkedin-agent-skill-sp/tree/main/extension"
+}

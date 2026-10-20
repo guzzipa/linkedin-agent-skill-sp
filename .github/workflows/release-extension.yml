@@ -1,0 +1,43 @@
+name: Release de la extensión
+
+# Al pushear un tag extension-vX.Y.Z, arma la extensión de Chrome y la publica como zip
+# en Releases, para que se pueda instalar sin Node. Los tags vX.Y.Z-es son de las skills.
+on:
+  push:
+    tags: ["extension-v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: extension/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Empaquetar
+        run: |
+          VERSION="${GITHUB_REF_NAME#extension-}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          cd dist && zip -r "../linkedin-commenter-${VERSION}.zip" .
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "linkedin-commenter-${VERSION}.zip" \
+            --title "Extensión de Chrome ${VERSION}" \
+            --notes "Extensión de Chrome LinkedIn Commenter ${VERSION}. Cómo instalarla: https://github.com/${GITHUB_REPOSITORY}/tree/main/extension#instalación" \
+            --latest=false
