@@ -92,6 +92,15 @@
   <p class="help">Pegá 3 a 5 comentarios que hayas escrito vos. Es la mejor forma de que suene a vos.</p>
   <textarea id="examples" style="min-height: 120px"></textarea>
 
+  <h2>Lo que aprendió de vos</h2>
+  <p class="help">Cada vez que editás un comentario antes de publicarlo, o descartás una sugerencia, la extensión lo guarda (solo en este navegador). En cada ronda le muestra a la IA tus últimas correcciones, y cada 8 ejemplos nuevos resume lo que cambiás siempre en reglas. Las reglas son tuyas: corregilas o borralas cuando quieras.</p>
+  <textarea id="learnedRules" style="min-height: 120px" placeholder="Todavía no hay reglas. Aparecen después de que edites o descartes algunas sugerencias."></textarea>
+  <div class="actions" style="margin-top: 10px">
+    <button class="ghost" id="learnNow">Aprender ahora</button>
+    <button class="ghost" id="forget">Borrar lo aprendido</button>
+    <span id="learnStatus" class="help"></span>
+  </div>
+
   <h2>Ronda automática</h2>
   <p class="help">Mientras navegás LinkedIn, la extensión lee los posts que cargan (sin hacer clics), elige los que valen un comentario y los deja en el botón 💬 de abajo a la derecha. Cada ronda de 8 posts cuesta unos centavos de dólar.</p>
 
