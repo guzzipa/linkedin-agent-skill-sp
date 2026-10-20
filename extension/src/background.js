@@ -4,13 +4,35 @@ import {
   buildRoundMessage, buildRoundSystemPrompt, buildSystemPrompt, buildUserMessage,
 } from "./prompt.js";
 import { humanize } from "./humanize.js";
+import { GEMINI_MODELS, GeminiError, callGemini } from "./gemini.js";
 
 async function getSettings() {
   const stored = await chrome.storage.local.get(Object.keys(DEFAULT_SETTINGS));
   const settings = { ...DEFAULT_SETTINGS, ...stored };
   // Configuraciones viejas (claude-opus-5, claude-sonnet-5) pasan al modelo actual.
   if (!MODELS.includes(settings.model)) settings.model = DEFAULT_SETTINGS.model;
+  if (!GEMINI_MODELS.includes(settings.geminiModel)) settings.geminiModel = DEFAULT_SETTINGS.geminiModel;
   return settings;
+}
+
+function keyFor(settings) {
+  const key = settings.provider === "gemini" ? settings.geminiKey : settings.apiKey;
+  if (!key) throw new Error("Falta la API key. Abrí la configuración de la extensión.");
+  return key;
+}
+
+// Un pedido con salida JSON al proveedor elegido. Devuelve { data, model }.
+async function callJson(settings, { system, user, schema }) {
+  const apiKey = keyFor(settings);
+  if (settings.provider === "gemini") {
+    return callGemini({ apiKey, model: settings.geminiModel, system, user, schema });
+  }
+  const response = await makeClient(apiKey).beta.messages.create({
+    ...requestParams(settings.model, schema),
+    system,
+    messages: [{ role: "user", content: user }],
+  });
+  return { data: readJson(response), model: response.model };
 }
 
 function makeClient(apiKey) {
@@ -48,20 +70,16 @@ function clean(text) {
 
 async function generate({ author, post, hint }) {
   const settings = await getSettings();
-  if (!settings.apiKey) throw new Error("Falta la API key. Abrí la configuración de la extensión.");
   if (!post?.trim()) throw new Error("No hay texto del post para comentar.");
 
-  const client = makeClient(settings.apiKey);
-  const response = await client.beta.messages.create({
-    ...requestParams(settings.model),
+  const { data, model } = await callJson(settings, {
     system: buildSystemPrompt(settings),
-    messages: [{ role: "user", content: buildUserMessage({ author, post, hint }) }],
+    user: buildUserMessage({ author, post, hint }),
+    schema: OUTPUT_SCHEMA,
   });
-
-  const { comments } = readJson(response);
   return {
-    comments: comments.slice(0, 3).map((c) => ({ ...c, ...clean(c.text) })),
-    model: response.model,
+    comments: data.comments.slice(0, 3).map((c) => ({ ...c, ...clean(c.text) })),
+    model,
   };
 }
 
@@ -69,20 +87,18 @@ async function generate({ author, post, hint }) {
 // un comentario ya humanizado.
 async function round({ posts }) {
   const settings = await getSettings();
-  if (!settings.apiKey) throw new Error("Falta la API key. Abrí la configuración de la extensión.");
   if (!posts?.length) return { picks: [] };
 
-  const client = makeClient(settings.apiKey);
-  const response = await client.beta.messages.create({
-    ...requestParams(settings.model, ROUND_SCHEMA),
+  const { data, model } = await callJson(settings, {
     system: buildRoundSystemPrompt(settings),
-    messages: [{ role: "user", content: buildRoundMessage(posts) }],
+    user: buildRoundMessage(posts),
+    schema: ROUND_SCHEMA,
   });
   const known = new Set(posts.map((p) => p.id));
-  const picks = readJson(response)
-    .posts.filter((p) => known.has(p.id))
+  const picks = data.posts
+    .filter((p) => known.has(p.id))
     .map((p) => (p.comentar && p.comentario.trim() ? { ...p, ...clean(p.comentario) } : { ...p, text: "", flags: [] }));
-  return { picks, model: response.model };
+  return { picks, model };
 }
 
 function setBadge({ count }) {
@@ -91,7 +107,18 @@ function setBadge({ count }) {
   return Promise.resolve({});
 }
 
-async function testConnection(apiKey, model) {
+async function testConnection({ provider, apiKey, model }) {
+  if (provider === "gemini") {
+    const res = await callGemini({
+      apiKey,
+      model: GEMINI_MODELS.includes(model) ? model : DEFAULT_SETTINGS.geminiModel,
+      system: "Respondés en JSON.",
+      user: "Respondé {\"ok\": true}",
+      schema: { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"] },
+      maxTokens: 1024,
+    });
+    return { model: res.model };
+  }
   const client = makeClient(apiKey);
   const response = await client.beta.messages.create({
     ...requestParams(MODELS.includes(model) ? model : DEFAULT_SETTINGS.model),
@@ -103,10 +130,15 @@ async function testConnection(apiKey, model) {
 }
 
 function describeError(err) {
+  if (err instanceof GeminiError) return err.message;
   if (err instanceof Anthropic.AuthenticationError) return "API key inválida.";
   if (err instanceof Anthropic.PermissionDeniedError) return "La API key no tiene permiso para este modelo.";
   if (err instanceof Anthropic.RateLimitError) return "Límite de uso alcanzado. Probá en un rato.";
   if (err instanceof Anthropic.APIConnectionError) return "No pude conectar con la API de Anthropic.";
+  if (err instanceof Anthropic.BadRequestError && /credit balance/i.test(err.message)) {
+    return "Tu cuenta de la API de Anthropic no tiene saldo. Cargá crédito en console.anthropic.com → Billing (la suscripción a Claude no sirve para la API). Reintento solo en un rato.";
+  }
+  if (err instanceof Anthropic.InternalServerError) return "La API de Anthropic está con problemas. Reintento solo en un rato.";
   if (err instanceof Anthropic.APIError) return `Error de la API (${err.status}): ${err.message}`;
   return err?.message || String(err);
 }
@@ -116,7 +148,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     generate: () => generate(msg),
     round: () => round(msg),
     badge: () => setBadge(msg),
-    test: () => testConnection(msg.apiKey, msg.model),
+    test: () => testConnection(msg),
     openOptions: () => chrome.runtime.openOptionsPage().then(() => ({})),
   };
   const handler = handlers[msg?.type];

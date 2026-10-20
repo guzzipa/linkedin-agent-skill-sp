@@ -1,8 +1,11 @@
 export const MODELS = ["claude-opus-5-5", "claude-sonnet-5-5"];
 
 export const DEFAULT_SETTINGS = {
+  provider: "anthropic", // "anthropic" o "gemini"
   apiKey: "",
   model: "claude-opus-5-5",
+  geminiKey: "",
+  geminiModel: "gemini-3.8-flash",
   persona: "",
   tone: "Cercano y directo, como alguien que sabe del tema y habla de igual a igual. Si el post está en español, usá español neutro (tú), salvo que mis comentarios de ejemplo muestren que uso vos o usted.",
   language: "auto",

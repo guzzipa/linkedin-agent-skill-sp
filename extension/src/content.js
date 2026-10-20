@@ -461,7 +461,7 @@
   const PROMOTED_RE = /(^|\n)\s*(Promocionado|Promoted|Patrocinado|Sponsored)\s*($|\n)/i;
 
   async function getData() {
-    const d = await store.get(["lic_queue", "lic_done", "lic_log", "autoRound", "maxPerRound", "maxPerDay", "skipAbove", "apiKey"]);
+    const d = await store.get(["lic_queue", "lic_done", "lic_log", "autoRound", "maxPerRound", "maxPerDay", "skipAbove", "apiKey", "provider", "geminiKey"]);
     return {
       queue: d.lic_queue || [],
       done: d.lic_done || {},
@@ -470,7 +470,7 @@
       maxPerRound: Number(d.maxPerRound) || 5,
       maxPerDay: Number(d.maxPerDay) || 15,
       skipAbove: Number(d.skipAbove) || 40,
-      hasKey: !!d.apiKey,
+      hasKey: d.provider === "gemini" ? !!d.geminiKey : !!d.apiKey,
     };
   }
 
@@ -514,10 +514,15 @@
     const fresh = await getData();
     for (const p of batch) fresh.done[p.id] = Date.now();
     if (!res?.ok) {
-      // Si falló la API, que esos posts vuelvan a la cola la próxima vez.
-      for (const p of batch) delete fresh.done[p.id];
+      // Si falló la API, esos posts vuelven a la espera y se reintenta en dos minutos.
+      for (const p of batch) {
+        delete fresh.done[p.id];
+        pending.set(p.id, p);
+      }
       await store.set({ lic_done: fresh.done });
       setRoundStatus(res?.error || "Error desconocido.");
+      clearTimeout(roundTimer);
+      roundTimer = setTimeout(runRound, 120000);
       return;
     }
     const picks = res.picks

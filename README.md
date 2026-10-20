@@ -20,7 +20,7 @@ El repo trae dos cosas, que usan el mismo humanizador:
 | | qué es | para quién |
 | --- | --- | --- |
 | **[Las skills](#instalar)** | 14 skills para Claude Code o el chat de Claude: posts, perfil, plan semanal, comentarios, DMs, bandeja, carruseles, auditoría. Gratis, sin API key. | Quien quiere ayuda con todo LinkedIn hablando con Claude. |
-| **[La extensión de Chrome](extension/)** | Hace tu ronda de comentarios adentro de LinkedIn: lee el feed, elige qué posts vale la pena comentar, escribe los comentarios y vos publicás con un clic. Usa tu API key de Anthropic. | Quien comenta seguido y quiere ahorrarse la ronda diaria. |
+| **[La extensión de Chrome](extension/)** | Hace tu ronda de comentarios adentro de LinkedIn: lee el feed, elige qué posts vale la pena comentar, escribe los comentarios y vos publicás con un clic. Funciona con Claude o con Gemini (que tiene nivel gratuito), con tu propia API key. | Quien comenta seguido y quiere ahorrarse la ronda diaria. |
 
 ## Qué cambió respecto del original
 
