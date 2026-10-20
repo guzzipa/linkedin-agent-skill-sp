@@ -44,6 +44,7 @@
       if (bar.querySelector(".lic-btn")) continue;
       const container = findPostContainer(bar);
       if (!container) continue;
+      registerPost(container, btn);
 
       const ours = document.createElement("button");
       ours.type = "button";
@@ -68,7 +69,8 @@
     clearTimeout(scanTimer);
     scanTimer = setTimeout(scan, 400);
   }).observe(document.body, { childList: true, subtree: true });
-  scan();
+  // Después de que se defina todo el script (la ronda, más abajo, usa constantes propias).
+  queueMicrotask(scan);
 
   // ---------- Lectura del post ----------
 
@@ -89,8 +91,8 @@
     return false;
   }
 
-  async function extractPost(container) {
-    const more = [...container.querySelectorAll("button")].find(
+  async function extractPost(container, { expand = true } = {}) {
+    const more = expand && [...container.querySelectorAll("button")].find(
       (b) =>
         !inComments(b, container) &&
         (b.classList.contains("feed-shared-inline-show-more-text__see-more-less-toggle") ||
@@ -223,6 +225,7 @@
     .opt-head b { color: #0a66c2; font-weight: 600; }
     .opt textarea { min-height: 70px; resize: vertical; }
     .opt .row { justify-content: flex-end; }
+    .flag { font-size: 12px; color: #8a5a00; background: #fff6e0; border-radius: 6px; padding: 4px 8px; }
     footer { padding: 8px 14px; border-top: 1px solid #e8e8e8; font-size: 12px; color: #666; display: flex; justify-content: space-between; }
     footer a { color: #0a66c2; cursor: pointer; }
   `;
@@ -341,7 +344,7 @@
     for (const c of res.comments) panel.opts.append(renderOption(c));
   }
 
-  function renderOption({ angle, text }) {
+  function renderOption({ angle, text, flags = [] }) {
     const area = el("textarea", { value: text });
     const count = el("span", { textContent: `${text.length} car.` });
     area.addEventListener("input", () => (count.textContent = `${area.value.length} car.`));
@@ -365,7 +368,330 @@
     return el("div", { className: "opt" }, [
       el("div", { className: "opt-head" }, [el("b", { textContent: ANGLE_LABELS[angle] || angle }), count]),
       area,
+      ...flagList(flags),
       el("div", { className: "row" }, [copy, insert]),
     ]);
   }
+
+  function flagList(flags) {
+    return flags.map((f) => el("div", { className: "flag", textContent: `⚠ ${f.name}`, title: f.fix || "" }));
+  }
+
+  // ---------- Ronda automática ----------
+  // Junta los posts del feed a medida que cargan (sin hacer clics), le pide a Claude que elija
+  // cuáles vale la pena comentar y deja los comentarios en una cola. Publicar es un clic tuyo:
+  // nada sale sin que lo hayas visto.
+
+  const seen = new Map(); // id -> { container, commentBtn }
+  const pending = new Map(); // id -> post leído, esperando ronda
+  let roundTimer = null;
+  let roundBusy = false;
+  let roundStatus = "";
+  let queuePanel = null;
+  const store = chrome.storage.local;
+  const today = () => new Date().toISOString().slice(0, 10);
+
+  function postId(container) {
+    const urn =
+      container.getAttribute("data-urn") ||
+      container.getAttribute("data-id") ||
+      container.querySelector("[data-urn]")?.getAttribute("data-urn");
+    return urn || null;
+  }
+
+  function postUrl(id) {
+    return /^urn:li:/.test(id) ? `https://www.linkedin.com/feed/update/${id}/` : location.href;
+  }
+
+  function commentCount(container) {
+    for (const n of container.querySelectorAll("button, span, a")) {
+      if (inComments(n, container)) continue;
+      const m = (n.getAttribute("aria-label") || n.innerText || "").match(/(\d[\d.,]*)\s+(comentarios?|comments?)\b/i);
+      if (m) return parseInt(m[1].replace(/[.,]/g, ""), 10);
+    }
+    return 0;
+  }
+
+  const PROMOTED_RE = /(^|\n)\s*(Promocionado|Promoted|Patrocinado|Sponsored)\s*($|\n)/i;
+
+  async function getData() {
+    const d = await store.get(["lic_queue", "lic_done", "lic_log", "autoRound", "maxPerRound", "maxPerDay", "skipAbove", "apiKey"]);
+    return {
+      queue: d.lic_queue || [],
+      done: d.lic_done || {},
+      log: d.lic_log || [],
+      autoRound: d.autoRound !== false,
+      maxPerRound: Number(d.maxPerRound) || 5,
+      maxPerDay: Number(d.maxPerDay) || 15,
+      skipAbove: Number(d.skipAbove) || 40,
+      hasKey: !!d.apiKey,
+    };
+  }
+
+  async function registerPost(container, commentBtn) {
+    let id = postId(container);
+    const author = extractAuthor(container);
+    const text = await extractPost(container, { expand: false });
+    if (!id) id = `txt:${author}:${text.slice(0, 60)}`;
+    seen.set(id, { container, commentBtn });
+    if (!text || text.length < 60 || PROMOTED_RE.test(container.innerText || "")) return;
+
+    const data = await getData();
+    if (data.done[id] || pending.has(id)) return;
+    // No comentar a la misma persona más de una vez por semana: se nota.
+    const week = Date.now() - 7 * 864e5;
+    if (author && data.log.some((l) => l.author === author && l.at > week)) return;
+    const comments = commentCount(container);
+    if (comments > data.skipAbove) return;
+
+    pending.set(id, { id, author, text: text.slice(0, 3000), comments, url: postUrl(id) });
+    if (!data.autoRound) return;
+    clearTimeout(roundTimer);
+    // Espera a que se junten unos cuantos posts, o 8 segundos sin posts nuevos.
+    roundTimer = setTimeout(runRound, pending.size >= 8 ? 0 : 8000);
+  }
+
+  async function runRound() {
+    if (roundBusy || !pending.size) return;
+    const data = await getData();
+    if (!data.hasKey) return setRoundStatus("Falta la API key: abrí la configuración.");
+    const published = data.log.filter((l) => new Date(l.at).toISOString().slice(0, 10) === today()).length;
+    if (published >= data.maxPerDay) return setRoundStatus(`Ya publicaste ${published} hoy, tu máximo. Sigo mañana.`);
+
+    roundBusy = true;
+    const batch = [...pending.values()].slice(0, 8);
+    batch.forEach((p) => pending.delete(p.id));
+    setRoundStatus(`Leyendo ${batch.length} posts nuevos…`);
+    const res = await send({ type: "round", posts: batch });
+    roundBusy = false;
+
+    const fresh = await getData();
+    for (const p of batch) fresh.done[p.id] = Date.now();
+    if (!res?.ok) {
+      // Si falló la API, que esos posts vuelvan a la cola la próxima vez.
+      for (const p of batch) delete fresh.done[p.id];
+      await store.set({ lic_done: fresh.done });
+      setRoundStatus(res?.error || "Error desconocido.");
+      return;
+    }
+    const picks = res.picks
+      .filter((p) => p.comentar && p.text)
+      .sort((a, b) => b.puntaje - a.puntaje)
+      .slice(0, data.maxPerRound);
+    const byId = Object.fromEntries(batch.map((p) => [p.id, p]));
+    for (const p of picks) {
+      const post = byId[p.id];
+      fresh.queue.push({
+        id: p.id, author: post.author, snippet: post.text.slice(0, 220), url: post.url,
+        tipo: p.tipo, motivo: p.motivo, puntaje: p.puntaje, text: p.text, flags: p.flags,
+        status: "pendiente", at: Date.now(),
+      });
+    }
+    // Lo que quedó sin publicar de días anteriores ya no sirve: el post envejeció.
+    fresh.queue = fresh.queue.filter((q) => q.status === "pendiente" && Date.now() - q.at < 36 * 3600e3);
+    const keep = Object.entries(fresh.done).filter(([, t]) => Date.now() - t < 14 * 864e5);
+    await store.set({ lic_queue: fresh.queue, lic_done: Object.fromEntries(keep) });
+    setRoundStatus(picks.length ? `${picks.length} comentario(s) nuevo(s) de ${batch.length} posts.` : `Ninguno de estos ${batch.length} posts valía un comentario.`);
+    if (pending.size) roundTimer = setTimeout(runRound, 1000);
+  }
+
+  function setRoundStatus(text) {
+    roundStatus = text;
+    renderQueue();
+  }
+
+  // ---------- Publicar en un clic ----------
+
+  // El botón que publica está pegado a la caja. Nunca el "Comentar" de la barra de acciones
+  // del post, que se llama igual: por eso se busca subiendo desde la caja, no en todo el post.
+  function findSubmit(ctx, editor) {
+    const bar = findActionBar(ctx.commentBtn);
+    let scope = editor.closest("form");
+    for (let n = editor.parentElement, i = 0; !scope && n && n !== ctx.container && i < 5; n = n.parentElement, i++) {
+      if (bar && n.contains(bar)) break;
+      if (n.querySelector("button")) scope = n;
+    }
+    if (!scope) return null;
+    const buttons = [...scope.querySelectorAll("button")].filter(
+      (b) => isVisible(b) && b !== ctx.commentBtn && !(bar && bar.contains(b)) && !b.closest(".lic-btn")
+    );
+    return (
+      buttons.find((b) => b.classList.contains("comments-comment-box__submit-button")) ||
+      buttons.find((b) => b.type === "submit") ||
+      buttons.find((b) => /^(publicar|comentar|post|comment)$/i.test(labelOf(b)))
+    );
+  }
+
+  async function publish(item, text) {
+    const ctx = seen.get(item.id);
+    if (!ctx || !document.contains(ctx.container)) {
+      await navigator.clipboard.writeText(text);
+      window.open(item.url, "_blank");
+      return { ok: false, msg: "El post ya no está en esta página: copié el comentario y lo abrí en otra pestaña." };
+    }
+    const result = await insertComment(ctx, text);
+    if (result !== "inserted") return { ok: false, msg: "No encontré la caja de comentario; lo copié al portapapeles." };
+    const editor = findEditor(ctx.container);
+    const submit = editor && (await waitFor(() => {
+      const b = findSubmit(ctx, editor);
+      return b && !b.disabled ? b : null;
+    }));
+    if (!submit) return { ok: false, msg: "Quedó en la caja de comentario: tocá Publicar en LinkedIn." };
+    submit.click();
+    const cleared = await waitFor(() => !document.contains(editor) || !editor.innerText.trim(), 6000);
+    if (!cleared) return { ok: false, msg: "Toqué Publicar pero no sé si salió: revisá el post." };
+    return { ok: true };
+  }
+
+  async function updateItem(id, patch, logAuthor) {
+    const d = await getData();
+    const queue = d.queue.map((q) => (q.id === id ? { ...q, ...patch } : q)).filter((q) => q.status === "pendiente");
+    const log = logAuthor !== undefined ? [...d.log, { author: logAuthor, at: Date.now() }].slice(-300) : d.log;
+    await store.set({ lic_queue: queue, lic_log: log });
+  }
+
+  // ---------- Panel de la cola ----------
+
+  const QUEUE_CSS = PANEL_CSS + `
+    .launcher { position: fixed; right: 20px; bottom: 20px; z-index: 2147483646; border: 0; border-radius: 24px;
+      padding: 10px 16px; background: #0a66c2; color: #fff; font: 600 14px/1 -apple-system, system-ui, sans-serif;
+      box-shadow: 0 4px 16px rgba(0,0,0,.25); cursor: pointer; }
+    .launcher:hover { background: #004182; }
+    .card { border: 1px solid #e0e0e0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .who { font-weight: 600; font-size: 13px; }
+    .snip { font-size: 12px; color: #555; max-height: 4.2em; overflow: hidden; }
+    .why { font-size: 12px; color: #666; }
+    .chip { display: inline-block; background: #eef3f8; color: #0a66c2; border-radius: 10px; padding: 1px 8px; font-size: 11px; font-weight: 600; margin-right: 6px; }
+    .card textarea { min-height: 80px; resize: vertical; }
+    .card .row { justify-content: flex-end; }
+    .msg { font-size: 12px; color: #b24020; }
+    .empty { color: #666; font-size: 13px; padding: 8px 0; }
+    .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  `;
+
+  function ensureQueueHost() {
+    if (queuePanel) return queuePanel;
+    const host = el("div", { id: "lic-queue-host" });
+    const root = host.attachShadow({ mode: "open" });
+    root.innerHTML = `<style>${QUEUE_CSS}</style><div class="slot"></div>`;
+    root.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Escape") toggleQueue(false);
+    });
+    document.body.append(host);
+    queuePanel = { host, root, slot: root.querySelector(".slot"), open: false };
+    return queuePanel;
+  }
+
+  function toggleQueue(open) {
+    const q = ensureQueueHost();
+    q.open = open ?? !q.open;
+    renderQueue();
+  }
+
+  async function renderQueue() {
+    const q = ensureQueueHost();
+    const d = await getData();
+    send({ type: "badge", count: d.queue.length });
+    if (!q.open) {
+      const btn = el("button", { className: "launcher", textContent: d.queue.length ? `💬 ${d.queue.length} para comentar` : "💬 Ronda" });
+      btn.addEventListener("click", () => toggleQueue(true));
+      q.slot.replaceChildren(btn);
+      return;
+    }
+    // No repintar mientras escribís en una tarjeta.
+    if (q.root.activeElement?.tagName === "TEXTAREA") return;
+
+    const published = d.log.filter((l) => new Date(l.at).toISOString().slice(0, 10) === today()).length;
+    const close = el("button", { className: "x", title: "Cerrar (Esc)", textContent: "×" });
+    close.addEventListener("click", () => toggleQueue(false));
+
+    const more = el("button", { className: "ghost", textContent: "Buscar más posts" });
+    more.addEventListener("click", loadMore);
+    const pause = el("button", { className: "ghost", textContent: d.autoRound ? "Pausar ronda" : "Reanudar ronda" });
+    pause.addEventListener("click", async () => {
+      await store.set({ autoRound: !d.autoRound });
+      if (!d.autoRound) runRound();
+      renderQueue();
+    });
+    const cfg = el("a", { className: "cfg", textContent: "Configuración" });
+    cfg.addEventListener("click", () => send({ type: "openOptions" }));
+
+    const cards = d.queue.length
+      ? d.queue.map(renderCard)
+      : [el("div", { className: "empty", textContent: d.autoRound ? "Todavía no hay comentarios. Bajá por el feed o tocá Buscar más posts: los leo solo." : "La ronda está en pausa." })];
+
+    q.slot.replaceChildren(
+      el("div", { className: "wrap", role: "dialog", ariaLabel: "Ronda de comentarios" }, [
+        el("header", {}, [el("strong", { textContent: "Ronda de comentarios" }), el("span", { className: "meta", textContent: `hoy: ${published}/${d.maxPerDay}` }), close]),
+        el("div", { className: "body" }, [
+          el("div", { className: "tools" }, [more, pause]),
+          el("div", { className: "status", ariaLive: "polite", textContent: roundBusy ? "Pensando comentarios…" : roundStatus }),
+          ...cards,
+        ]),
+        el("footer", {}, [el("span", { textContent: "Nada se publica sin tu clic." }), cfg]),
+      ])
+    );
+  }
+
+  function renderCard(item) {
+    const area = el("textarea", { value: item.text });
+    const msg = el("div", { className: "msg" });
+    const go = el("button", { className: "ghost", textContent: "Ver post" });
+    go.addEventListener("click", () => {
+      const ctx = seen.get(item.id);
+      if (ctx && document.contains(ctx.container)) ctx.container.scrollIntoView({ block: "center", behavior: "smooth" });
+      else window.open(item.url, "_blank");
+    });
+    const skip = el("button", { className: "ghost", textContent: "Descartar" });
+    skip.addEventListener("click", async () => {
+      await updateItem(item.id, { status: "descartado" });
+      renderQueue();
+    });
+    const pub = el("button", { className: "primary", textContent: "Publicar" });
+    pub.addEventListener("click", async () => {
+      const text = area.value.trim();
+      if (!text) return;
+      pub.disabled = true;
+      pub.textContent = "Publicando…";
+      const r = await publish(item, text);
+      if (r.ok) {
+        await updateItem(item.id, { status: "publicado" }, item.author || "");
+        area.blur();
+        renderQueue();
+      } else {
+        pub.disabled = false;
+        pub.textContent = "Publicar";
+        msg.textContent = r.msg;
+      }
+    });
+    return el("div", { className: "card" }, [
+      el("div", { className: "who", textContent: item.author || "Post" }),
+      el("div", { className: "snip", textContent: item.snippet }),
+      el("div", { className: "why" }, [el("span", { className: "chip", textContent: item.tipo.replace(/_/g, " ") }), item.motivo]),
+      area,
+      ...flagList(item.flags || []),
+      msg,
+      el("div", { className: "row" }, [go, skip, pub]),
+    ]);
+  }
+
+  // Lo pedís vos: baja unas pantallas para que LinkedIn cargue más posts, y vuelve.
+  async function loadMore() {
+    const start = window.scrollY;
+    setRoundStatus("Cargando más posts…");
+    for (let i = 0; i < 4; i++) {
+      window.scrollBy({ top: window.innerHeight * 0.9, behavior: "smooth" });
+      await sleep(1200);
+    }
+    window.scrollTo({ top: start, behavior: "smooth" });
+    setRoundStatus(pending.size ? `${pending.size} posts nuevos para leer.` : "No aparecieron posts nuevos.");
+    clearTimeout(roundTimer);
+    roundTimer = setTimeout(runRound, 500);
+  }
+
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.lic_queue) renderQueue();
+  });
+  renderQueue();
 })();
