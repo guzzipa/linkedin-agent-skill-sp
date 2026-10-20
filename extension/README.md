@@ -139,14 +139,14 @@ LinkedIn cambia el HTML de su sitio seguido. Si algo deja de andar, [abrí un is
 | --- | --- |
 | `src/content.js` | Corre dentro de LinkedIn. Detecta los posts (por el botón "Comentar" y la barra de reacciones), lee autor y texto, arma las rondas, muestra los paneles (shadow DOM) y publica. |
 | `src/background.js` | Service worker. Llama a la IA elegida con salida JSON estructurada, humaniza cada comentario y actualiza el contador del ícono. |
-| `src/gemini.js` | Cliente de la API de Gemini (`generateContent` con `responseSchema`), sin dependencias. |
+| `src/gemini.js` | Cliente de la API de Gemini (Interactions API con `response_format`), sin dependencias. |
 | `src/prompt.js` | Prompts de **Sugerir** y de la ronda, esquemas de salida y valores por defecto de la configuración. |
 | `src/humanize.js` | Port a JS de [`skills/li-human/humanize.py`](../skills/li-human/humanize.py). Lee los léxicos de [`skills/li-human/lexicons/`](../skills/li-human/lexicons) (hay una sola copia para las skills y la extensión) y traduce sus regex de Python a JS. |
 | `src/options.*` | Página de configuración. |
 
 **Modelo y API:**
 - **Claude:** `claude-opus-5-5` por defecto, o `claude-sonnet-5-5`, con el SDK oficial. Usa `effort: "medium"` y `fallbacks: "default"`: si los clasificadores de seguridad rechazan un pedido, la API lo reintenta en otro modelo.
-- **Gemini:** `gemini-3.8-flash` por defecto, o `gemini-3.5-flash-lite`, con `fetch` directo a `generateContent`. El esquema JSON se convierte al formato de Gemini en `toGeminiSchema`.
+- **Gemini:** `gemini-3.8-flash` por defecto, o `gemini-3.5-flash-lite`, con `fetch` directo a la [Interactions API](https://ai.google.dev/gemini-api/docs/interactions) y `store: false`, para que Google no guarde la conversación. No usa `generateContent` porque devuelve 404 con las keys nuevas de AI Studio (las que empiezan con `AQ.`). Una ronda con 3.8 Flash tarda cerca de un minuto, porque el modelo piensa antes de responder.
 
 ```bash
 npm run watch   # recompila al guardar; después ↻ en chrome://extensions y recargá LinkedIn
