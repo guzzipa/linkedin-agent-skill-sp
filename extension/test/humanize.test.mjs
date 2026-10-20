@@ -1,5 +1,5 @@
 // El port JS tiene que marcar lo mismo que skills/li-human/humanize.py.
-// Si el repo de skills está al lado, compara contra Python; si no, corre solo los casos fijos.
+// Corre desde extension/; el humanizador en Python y sus textos de prueba están en la raíz del repo.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -7,13 +7,13 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { humanize, pyRegex } from "../src/humanize.js";
 
-const SKILLS = process.env.SKILLS_REPO || join(import.meta.dirname, "..", "..", "linkedin-agent-skill-sp");
-const PY = join(SKILLS, "skills", "li-human", "humanize.py");
-const FIX = join(SKILLS, "tests", "fixtures");
+const ROOT = join(import.meta.dirname, "..", "..");
+const PY = join(ROOT, "skills", "li-human", "humanize.py");
+const FIX = join(ROOT, "tests", "fixtures");
 const IGNORAR = new Set(["uniforme", "broetry"]); // chequeos de post largo que la extensión no corre
 
 test("todas las regex del léxico compilan en JS", () => {
-  const lex = JSON.parse(readFileSync(join(import.meta.dirname, "..", "src", "lexicons", "es.json"), "utf8"));
+  const lex = JSON.parse(readFileSync(join(ROOT, "skills", "li-human", "lexicons", "es.json"), "utf8"));
   for (const s of lex.structures) assert.doesNotThrow(() => pyRegex(s.regex, "gm"), s.id);
 });
 
@@ -28,7 +28,7 @@ test("las tildes no rompen los bordes de palabra", () => {
   assert.ok(!r.flags.some((f) => /potenci/i.test(f.name)), JSON.stringify(r.flags));
 });
 
-test("marca lo mismo que la versión en Python", { skip: !existsSync(PY) && "no está linkedin-agent-skill-sp al lado" }, () => {
+test("marca lo mismo que la versión en Python", { skip: !existsSync(PY) && "no encuentro skills/li-human/humanize.py" }, () => {
   for (const f of readdirSync(FIX).filter((f) => f.endsWith("_es.txt") || f.endsWith("_mx.txt") || f.endsWith("_esp.txt"))) {
     const text = readFileSync(join(FIX, f), "utf8");
     const py = JSON.parse(execFileSync("python3", ["-I", PY, join(FIX, f), "--json"], { encoding: "utf8" }));

@@ -29,5 +29,6 @@
   "options_page": "options.html",
   "action": {
     "default_title": "LinkedIn Commenter: configuración"
-  }
+  },
+  "homepage_url": "https://github.com/guzzipa/linkedin-agent-skill-sp/tree/main/extension"
 }

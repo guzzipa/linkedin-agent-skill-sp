@@ -16,10 +16,20 @@ Adaptación al español y LatAm de `Jakeschincariol/linkedin-agent-skill` (MIT).
 - `templates/voice.md`: perfil de voz. El campo Registro (voseo, tuteo,
   usted, neutro o espana) lo usan todos los skills.
 - `tests/run_tests.py`: tests sin dependencias, con textos en `tests/fixtures/`.
+- `extension/`: la extensión de Chrome (antes el repo `linkedin-commenter`). Hace la
+  ronda de comentarios en LinkedIn con la API de Claude. `extension/src/humanize.js` es un
+  port de `humanize.py` y lee los mismos `skills/li-human/lexicons/*.json`: hay una sola
+  copia del léxico. `npm test` (en `extension/`) compara el JS contra el Python.
 
 ## Convenciones
 
 - Correr `python3 tests/run_tests.py` antes de cada commit. Tienen que pasar todos.
+  Si tocaste el léxico o `humanize.py`, correr también `npm test` en `extension/`: el
+  port en JS tiene que marcar lo mismo.
+- Releases: los tags `vX.Y.Z-es` son de las skills; los `extension-vX.Y.Z` arman el zip de
+  la extensión (`.github/workflows/release-extension.yml`).
+- La extensión nunca publica sola: cada comentario sale por un clic del usuario, y no se
+  agrega nada para esconderla de la detección de bots de LinkedIn.
 - En el léxico español, `replace` con texto es un reemplazo automático y solo
   se usa cuando el cambio es seguro: conectores, relleno y calcos con
   equivalente fijo. Lo que depende de género, número o contexto lleva

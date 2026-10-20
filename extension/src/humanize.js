@@ -1,8 +1,8 @@
 // Port a JS del humanizador de linkedin-agent-skill-sp (skills/li-human/humanize.py).
-// Usa los mismos léxicos (src/lexicons/*.json, sincronizados con `npm run sync-lexicon`).
+// Lee los mismos léxicos que /li-human, directo de skills/li-human/lexicons/: hay una sola copia.
 // Arregla solo lo seguro (invisibles, tipografía, reemplazos exactos) y marca el resto.
-import ES from "./lexicons/es.json" with { type: "json" };
-import EN from "./lexicons/en.json" with { type: "json" };
+import ES from "../../skills/li-human/lexicons/es.json" with { type: "json" };
+import EN from "../../skills/li-human/lexicons/en.json" with { type: "json" };
 
 const WORD = "\\p{L}\\p{N}_";
 // En JS, \w y \b son solo ASCII aunque uses el flag u: "más" tendría un "borde" en la "á".

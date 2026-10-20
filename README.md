@@ -15,6 +15,13 @@ adapta los once skills a LatAm, y suma tres nuevos.
 
 **Nada se publica hasta que decís que sí.** Estos skills escriben. Publicás vos.
 
+El repo trae dos cosas, que usan el mismo humanizador:
+
+| | qué es | para quién |
+| --- | --- | --- |
+| **[Las skills](#instalar)** | 14 skills para Claude Code o el chat de Claude: posts, perfil, plan semanal, comentarios, DMs, bandeja, carruseles, auditoría. Gratis, sin API key. | Quien quiere ayuda con todo LinkedIn hablando con Claude. |
+| **[La extensión de Chrome](extension/)** | Hace tu ronda de comentarios adentro de LinkedIn: lee el feed, elige qué posts vale la pena comentar, escribe los comentarios y vos publicás con un clic. Usa tu API key de Anthropic. | Quien comenta seguido y quiere ahorrarse la ronda diaria. |
+
 ## Qué cambió respecto del original
 
 | | original | esta versión |
@@ -27,7 +34,8 @@ adapta los once skills a LatAm, y suma tres nuevos.
 | Chequeo de voz | contracciones inglesas | persona gramatical, primera persona del pasado, oralidad y registro |
 | Ganchos | 21 | 27: los 21 adaptados con ejemplos de la región + 6 nuevos |
 | Skills | 11 | 14: suma `li-territorio`, `li-lectores`, `li-bilingue` |
-| Tests | no | `tests/run_tests.py`, 12 casos |
+| Tests | no | `tests/run_tests.py`, 18 casos, en CI |
+| Extensión de Chrome | no | [`extension/`](extension/): ronda de comentarios en LinkedIn con el mismo humanizador |
 
 ## Instalar
 
@@ -178,6 +186,7 @@ skills/li-human/detect.py             el panel de cinco chequeos
 skills/li-profile/rubric.json         el puntaje de perfil sobre 100
 templates/voice.md                    tu perfil de voz. Completalo primero.
 tests/                                runner y textos de prueba
+extension/                            la extensión de Chrome (ver extension/README.md)
 ```
 
 ## Fuentes consultadas para la adaptación

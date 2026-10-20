@@ -2,6 +2,8 @@
 
 Extensión de Chrome que hace tu ronda de comentarios en LinkedIn con Claude.
 
+Es parte de [linkedin-agent-skill-sp](https://github.com/guzzipa/linkedin-agent-skill-sp): las skills de LinkedIn en español para Claude. Las skills te ayudan con todo LinkedIn desde el chat (posts, perfil, plan semanal, DMs); esta extensión se ocupa solo de los comentarios, adentro de LinkedIn, y usa el mismo humanizador y las mismas reglas de `/li-comment`.
+
 Mientras bajás por el feed, lee los posts, elige los que vale la pena comentar según los temas que te interesan y te deja un comentario escrito para cada uno. Vos los revisás y publicás cada uno con un clic.
 
 ![Panel de la ronda, en el feed de prueba](docs/ronda.jpg)
@@ -26,7 +28,7 @@ Necesitás:
 
 ### Opción A: descargar el zip (sin programar)
 
-1. Entrá a [Releases](../../releases) y bajá el último `linkedin-commenter-vX.Y.Z.zip`.
+1. Entrá a [Releases](https://github.com/guzzipa/linkedin-agent-skill-sp/releases) y bajá el último `linkedin-commenter-vX.Y.Z.zip`. Está en los releases que se llaman **Extensión de Chrome**; los otros son de las skills.
 2. Descomprimilo en una carpeta que no vayas a borrar (por ejemplo, `Documentos/linkedin-commenter`).
 3. En Chrome, abrí `chrome://extensions` y activá **Modo de desarrollador** (arriba a la derecha).
 4. Tocá **Cargar descomprimida** y elegí la carpeta del paso 2.
@@ -37,8 +39,8 @@ Necesitás:
 Necesitás [Node.js](https://nodejs.org) 22 o más nuevo.
 
 ```bash
-git clone https://github.com/guzzipa/linkedin-commenter.git
-cd linkedin-commenter
+git clone https://github.com/guzzipa/linkedin-agent-skill-sp.git
+cd linkedin-agent-skill-sp/extension
 npm install
 npm run build
 ```
@@ -119,7 +121,7 @@ Leé cada comentario antes de publicarlo. Sale con tu nombre, y un comentario qu
 | "Quedó en la caja de comentario: tocá Publicar en LinkedIn" | No encontró el botón de publicar: el comentario ya está pegado, tocá vos el botón de LinkedIn. Pasa cuando LinkedIn cambia su página. |
 | "El post ya no está en esta página" | Te copia el comentario y abre el post en otra pestaña: pegalo ahí. |
 
-LinkedIn cambia el HTML de su sitio seguido. Si algo deja de andar, [abrí un issue](../../issues) contando qué pasó.
+LinkedIn cambia el HTML de su sitio seguido. Si algo deja de andar, [abrí un issue](https://github.com/guzzipa/linkedin-agent-skill-sp/issues) contando qué pasó.
 
 ## Para desarrolladores
 
@@ -128,8 +130,7 @@ LinkedIn cambia el HTML de su sitio seguido. Si algo deja de andar, [abrí un is
 | `src/content.js` | Corre dentro de LinkedIn. Detecta los posts (por el botón "Comentar" y la barra de reacciones), lee autor y texto, arma las rondas, muestra los paneles (shadow DOM) y publica. |
 | `src/background.js` | Service worker. Llama a la API de Claude con el SDK oficial y salida JSON estructurada, humaniza cada comentario y actualiza el contador del ícono. |
 | `src/prompt.js` | Prompts de **Sugerir** y de la ronda, esquemas de salida y valores por defecto de la configuración. |
-| `src/humanize.js` | Port a JS de `humanize.py` de [linkedin-agent-skill-sp](https://github.com/guzzipa/linkedin-agent-skill-sp). Traduce sus regex de Python a JS. |
-| `src/lexicons/` | Léxicos del humanizador, copiados de ese repo. |
+| `src/humanize.js` | Port a JS de [`skills/li-human/humanize.py`](../skills/li-human/humanize.py). Lee los léxicos de [`skills/li-human/lexicons/`](../skills/li-human/lexicons) (hay una sola copia para las skills y la extensión) y traduce sus regex de Python a JS. |
 | `src/options.*` | Página de configuración. |
 
 **Modelo y API:**
@@ -137,12 +138,11 @@ LinkedIn cambia el HTML de su sitio seguido. Si algo deja de andar, [abrí un is
 - Usa `effort: "medium"` y `fallbacks: "default"`: si los clasificadores de seguridad rechazan un pedido, la API lo reintenta en otro modelo.
 
 ```bash
-npm run watch          # recompila al guardar; después ↻ en chrome://extensions y recargá LinkedIn
-npm test               # tests del humanizador
-npm run sync-lexicon   # trae los léxicos de ../linkedin-agent-skill-sp
+npm run watch   # recompila al guardar; después ↻ en chrome://extensions y recargá LinkedIn
+npm test        # tests del humanizador: compara el JS contra el de Python (necesita python3)
 ```
 
-Si [linkedin-agent-skill-sp](https://github.com/guzzipa/linkedin-agent-skill-sp) está clonado en la carpeta de al lado (o en `SKILLS_REPO`), `npm test` también compara el humanizador en JS contra el de Python.
+Si cambiás el léxico en `skills/li-human/lexicons/`, corré `npm run build` para que la extensión lo tome.
 
 **Probar sin entrar a LinkedIn:** `test/mock-feed.html` imita el feed y simula la API y `chrome.storage`. Tiene cuatro posts:
 - uno con las clases del feed viejo de LinkedIn;
@@ -175,11 +175,11 @@ Dónde mirar si algo se rompe:
 
 **Publicar una versión:**
 1. Subí `version` en `package.json` y en `src/manifest.json`.
-2. Pusheá un tag `vX.Y.Z`. El workflow `release.yml` arma el zip y crea el release.
+2. Pusheá un tag `extension-vX.Y.Z`. El workflow [`release-extension.yml`](../.github/workflows/release-extension.yml) arma el zip y crea el release. (Los tags `vX.Y.Z-es` son de las skills.)
 
 ## Créditos
 
-- Los tipos de comentario y el humanizador vienen de [linkedin-agent-skill-sp](https://github.com/guzzipa/linkedin-agent-skill-sp), la adaptación al español de [linkedin-agent-skill](https://github.com/Jakeschincariol/linkedin-agent-skill) de Jake Schincariol.
+- Los tipos de comentario y el humanizador vienen de las skills de este repo, que adaptan al español [linkedin-agent-skill](https://github.com/Jakeschincariol/linkedin-agent-skill) de Jake Schincariol.
 
 ## Licencia
 

@@ -101,6 +101,12 @@ devolvé un comentario por post en un solo bloque, y llevá registro en
 las mismas tres personas se nota, y LinkedIn detecta y castiga los grupos que
 se comentan entre sí de forma coordinada ("pods").
 
+## Si el usuario quiere la ronda sin copiar y pegar
+
+La extensión de Chrome de este repo (`extension/`) hace esta misma ronda adentro de
+LinkedIn: lee el feed, elige los posts con estos diez tipos y deja los comentarios listos
+para publicar con un clic. Mencionala si el usuario pide automatizar los comentarios.
+
 ## Nunca
 
 No publiques. No uses un navegador para comentar por el usuario. Publicar o
