@@ -33,16 +33,38 @@
   <h1>LinkedIn Commenter</h1>
   <p class="sub">Lee tu feed, elige qué posts vale la pena comentar y te deja los comentarios listos. Publicar es un clic tuyo.</p>
 
-  <label for="apiKey">API key de Anthropic</label>
-  <p class="help">Se guarda solo en este navegador y se usa para llamar directo a api.anthropic.com. Sacala de console.anthropic.com.</p>
-  <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-...">
+  <label for="provider">Modelo de IA</label>
+  <p class="help">Con qué IA se escriben los comentarios. Cada una usa su propia API key, que se guarda solo en este navegador y viaja directo a la API de esa empresa.</p>
+  <select id="provider">
+    <option value="anthropic">Claude (Anthropic): mejor calidad, se paga por uso</option>
+    <option value="gemini">Gemini (Google): tiene nivel gratuito</option>
+  </select>
+
+  <div data-provider="anthropic">
+    <label for="apiKey">API key de Anthropic</label>
+    <p class="help">Sacala de <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys, y cargá saldo en Billing. La suscripción a Claude.ai no sirve para la API.</p>
+    <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-...">
+  </div>
+
+  <div data-provider="gemini">
+    <label for="geminiKey">API key de Gemini</label>
+    <p class="help">Sacala gratis de <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. <strong>Ojo:</strong> en el nivel gratuito Google usa lo que le mandás (el texto de los posts de tu feed y tu perfil) para mejorar sus productos. En el nivel pago, no.</p>
+    <input id="geminiKey" type="password" autocomplete="off" placeholder="AIza...">
+  </div>
 
   <div class="grid">
-    <div>
-      <label for="model">Modelo</label>
+    <div data-provider="anthropic">
+      <label for="model">Modelo de Claude</label>
       <select id="model">
         <option value="claude-opus-5-5">Claude Opus 5.5 (mejor calidad)</option>
         <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (la mitad de precio)</option>
+      </select>
+    </div>
+    <div data-provider="gemini">
+      <label for="geminiModel">Modelo de Gemini</label>
+      <select id="geminiModel">
+        <option value="gemini-3.8-flash">Gemini 3.8 Flash (mejor calidad)</option>
+        <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (más rápido)</option>
       </select>
     </div>
     <div>

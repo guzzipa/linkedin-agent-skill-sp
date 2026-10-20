@@ -1,6 +1,6 @@
 # LinkedIn Commenter
 
-Extensión de Chrome que hace tu ronda de comentarios en LinkedIn con Claude.
+Extensión de Chrome que hace tu ronda de comentarios en LinkedIn con Claude o con Gemini.
 
 Es parte de [linkedin-agent-skill-sp](https://github.com/guzzipa/linkedin-agent-skill-sp): las skills de LinkedIn en español para Claude. Las skills te ayudan con todo LinkedIn desde el chat (posts, perfil, plan semanal, DMs); esta extensión se ocupa solo de los comentarios, adentro de LinkedIn, y usa el mismo humanizador y las mismas reglas de `/li-comment`.
 
@@ -20,9 +20,16 @@ Funciona en español y en inglés: comenta en el idioma de cada post.
 Necesitás:
 
 1. **Google Chrome** (o Brave, Edge, Arc u otro navegador basado en Chromium).
-2. **Una API key de Anthropic, con saldo.** Se crea en [console.anthropic.com](https://console.anthropic.com): **API Keys → Create Key**. La API se paga por uso, aparte de cualquier suscripción a Claude.ai. Cargá unos USD 5 para empezar.
+2. **Una API key de alguna de estas dos IA:**
 
-**Cuánto cuesta:** con el modelo por defecto (Claude Opus 5.5), cada ronda de hasta 8 posts sale entre 5 y 10 centavos de dólar. Navegando el feed un rato por día, son unos pocos dólares al mes. Con Claude Sonnet 5.5 sale la mitad.
+| | Claude (Anthropic) | Gemini (Google) |
+| --- | --- | --- |
+| Dónde se saca | [console.anthropic.com](https://console.anthropic.com) → **API Keys** | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| Costo | Se paga por uso. Con Opus 5.5, cada ronda de hasta 8 posts sale entre 5 y 10 centavos de dólar; con Sonnet 5.5, la mitad. Cargá unos USD 5 para empezar. | **Tiene nivel gratuito**, con límites por minuto y por día. Si los pasás, hay nivel pago. |
+| Calidad de los comentarios | La mejor | Buena |
+| Privacidad | Anthropic no usa lo que mandás por la API para entrenar | **En el nivel gratuito, Google usa lo que le mandás para mejorar sus productos.** En el nivel pago, no. |
+
+La API de Anthropic va aparte de la suscripción a Claude.ai: tener Pro o Max no alcanza.
 
 ## Instalación
 
@@ -53,7 +60,8 @@ Tocá el ícono de la extensión para abrir la configuración. Lo que completes 
 
 | Campo | Qué poner |
 | --- | --- |
-| **API key de Anthropic** | La key que creaste. Después tocá **Probar conexión**. |
+| **Modelo de IA** | Claude o Gemini. |
+| **API key** | La key del proveedor que elegiste. Después tocá **Probar conexión**. |
 | **Quién sos** | Tu rol, años de experiencia, en qué trabajaste, opiniones fuertes. Ejemplo: *"Diseñadora de producto, 6 años en fintech en Bogotá. Lideré el rediseño de una app de pagos. Creo que la mayoría de los onboardings piden datos demasiado pronto."* Los comentarios solo usan lo que diga acá: si no está, no lo inventa. |
 | **Tono** | Cómo hablás. Si escribís con vos o con usted, decilo acá. |
 | **Comentarios tuyos de ejemplo** | 3 a 5 comentarios que hayas escrito vos. Es lo que más ayuda a que suene a vos. |
@@ -105,8 +113,9 @@ Leé cada comentario antes de publicarlo. Sale con tu nombre, y un comentario qu
 
 ## Privacidad
 
-- **Tu API key** queda guardada solo en tu navegador (`chrome.storage.local`) y viaja directo a `api.anthropic.com`. No pasa por ningún otro servidor.
-- **Lo que se manda a Anthropic** para escribir los comentarios: el texto y el autor de los posts de tu feed, cuántos comentarios tienen, y lo que pusiste en la configuración. Ver la [política de privacidad de Anthropic](https://www.anthropic.com/legal/privacy).
+- **Tu API key** queda guardada solo en tu navegador (`chrome.storage.local`). Viaja directo a `api.anthropic.com` o a `generativelanguage.googleapis.com`, según el proveedor que elegiste. No pasa por ningún otro servidor.
+- **Lo que se manda a la IA** para escribir los comentarios: el texto y el autor de los posts de tu feed, cuántos comentarios tienen, y lo que pusiste en la configuración. Ver la [política de privacidad de Anthropic](https://www.anthropic.com/legal/privacy) y los [términos de la API de Gemini](https://ai.google.dev/gemini-api/terms).
+- **Con Gemini en el nivel gratuito**, Google puede usar ese contenido (que incluye posts de otras personas) para mejorar sus productos. Si eso te molesta, usá Claude o el nivel pago de Gemini.
 - **Lo que queda en tu navegador:** la cola de sugerencias y un registro de a quién comentaste y cuándo, que se usa para no repetir autores.
 
 ## Problemas frecuentes
@@ -115,8 +124,9 @@ Leé cada comentario antes de publicarlo. Sale con tu nombre, y un comentario qu
 | --- | --- |
 | No aparece el botón 💬 | Recargá LinkedIn. Fijate en `chrome://extensions` que la extensión esté activada y sin errores. |
 | "Falta la API key" | Abrí la configuración, pegá la key y tocá **Guardar**. |
-| "API key inválida" o error 401 | La key está mal copiada o la borraste en la consola de Anthropic. |
-| "Límite de uso alcanzado" o error de saldo | Cargá saldo en [console.anthropic.com](https://console.anthropic.com) → **Billing**. |
+| "API key inválida" o error 401 | La key está mal copiada o la borraste en la consola del proveedor. |
+| "Tu cuenta de la API de Anthropic no tiene saldo" | Cargá saldo en [console.anthropic.com](https://console.anthropic.com) → **Billing**. La ronda se reintenta sola cada dos minutos. |
+| "Llegaste al límite de uso de Gemini" | El nivel gratuito tiene límites por minuto y por día. Esperá, bajá **Sugerencias por ronda** o pasá al nivel pago. |
 | Pasa un rato y no sugiere nada | Revisá que la ronda no esté en pausa y que **Temas** no sea demasiado estrecho. El panel dice cuántos posts leyó y cuántos descartó. |
 | "Quedó en la caja de comentario: tocá Publicar en LinkedIn" | No encontró el botón de publicar: el comentario ya está pegado, tocá vos el botón de LinkedIn. Pasa cuando LinkedIn cambia su página. |
 | "El post ya no está en esta página" | Te copia el comentario y abre el post en otra pestaña: pegalo ahí. |
@@ -128,18 +138,19 @@ LinkedIn cambia el HTML de su sitio seguido. Si algo deja de andar, [abrí un is
 | Archivo | Qué hace |
 | --- | --- |
 | `src/content.js` | Corre dentro de LinkedIn. Detecta los posts (por el botón "Comentar" y la barra de reacciones), lee autor y texto, arma las rondas, muestra los paneles (shadow DOM) y publica. |
-| `src/background.js` | Service worker. Llama a la API de Claude con el SDK oficial y salida JSON estructurada, humaniza cada comentario y actualiza el contador del ícono. |
+| `src/background.js` | Service worker. Llama a la IA elegida con salida JSON estructurada, humaniza cada comentario y actualiza el contador del ícono. |
+| `src/gemini.js` | Cliente de la API de Gemini (`generateContent` con `responseSchema`), sin dependencias. |
 | `src/prompt.js` | Prompts de **Sugerir** y de la ronda, esquemas de salida y valores por defecto de la configuración. |
 | `src/humanize.js` | Port a JS de [`skills/li-human/humanize.py`](../skills/li-human/humanize.py). Lee los léxicos de [`skills/li-human/lexicons/`](../skills/li-human/lexicons) (hay una sola copia para las skills y la extensión) y traduce sus regex de Python a JS. |
 | `src/options.*` | Página de configuración. |
 
 **Modelo y API:**
-- Modelo: `claude-opus-5-5` por defecto, o `claude-sonnet-5-5`.
-- Usa `effort: "medium"` y `fallbacks: "default"`: si los clasificadores de seguridad rechazan un pedido, la API lo reintenta en otro modelo.
+- **Claude:** `claude-opus-5-5` por defecto, o `claude-sonnet-5-5`, con el SDK oficial. Usa `effort: "medium"` y `fallbacks: "default"`: si los clasificadores de seguridad rechazan un pedido, la API lo reintenta en otro modelo.
+- **Gemini:** `gemini-3.8-flash` por defecto, o `gemini-3.5-flash-lite`, con `fetch` directo a `generateContent`. El esquema JSON se convierte al formato de Gemini en `toGeminiSchema`.
 
 ```bash
 npm run watch   # recompila al guardar; después ↻ en chrome://extensions y recargá LinkedIn
-npm test        # tests del humanizador: compara el JS contra el de Python (necesita python3)
+npm test        # humanizador (compara el JS contra el de Python, necesita python3) y cliente de Gemini
 ```
 
 Si cambiás el léxico en `skills/li-human/lexicons/`, corré `npm run build` para que la extensión lo tome.
