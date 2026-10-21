@@ -369,7 +369,7 @@
       setStatus(res?.error || "Error desconocido.", true);
       return;
     }
-    setStatus("");
+    setStatus(res.note ? `Escrito ${res.note}.` : "");
     for (const c of res.comments) panel.opts.append(renderOption(c));
   }
 
@@ -466,7 +466,7 @@
   const PROMOTED_RE = /(^|\n)\s*(Promocionado|Promoted|Patrocinado|Sponsored)\s*($|\n)/i;
 
   async function getData() {
-    const d = await store.get(["lic_queue", "lic_done", "lic_log", "autoRound", "maxPerRound", "maxPerDay", "skipAbove", "apiKey", "provider", "geminiKey", "compatKey"]);
+    const d = await store.get(["lic_queue", "lic_done", "lic_log", "autoRound", "maxPerRound", "maxPerDay", "skipAbove", "apiKey", "geminiKey", "compatKey"]);
     return {
       queue: d.lic_queue || [],
       done: d.lic_done || {},
@@ -475,7 +475,7 @@
       maxPerRound: Number(d.maxPerRound) || 5,
       maxPerDay: Number(d.maxPerDay) || 15,
       skipAbove: Number(d.skipAbove) || 40,
-      hasKey: !!({ gemini: d.geminiKey, compat: d.compatKey }[d.provider] ?? d.apiKey),
+      hasKey: !!(d.apiKey || d.geminiKey || d.compatKey),
     };
   }
 
@@ -547,7 +547,8 @@
     fresh.queue = fresh.queue.filter((q) => q.status === "pendiente" && Date.now() - q.at < 36 * 3600e3);
     const keep = Object.entries(fresh.done).filter(([, t]) => Date.now() - t < 14 * 864e5);
     await store.set({ lic_queue: fresh.queue, lic_done: Object.fromEntries(keep) });
-    setRoundStatus(picks.length ? `${picks.length} comentario(s) nuevo(s) de ${batch.length} posts.` : `Ninguno de estos ${batch.length} posts valía un comentario.`);
+    const via = res.note ? ` (${res.note})` : "";
+    setRoundStatus((picks.length ? `${picks.length} comentario(s) nuevo(s) de ${batch.length} posts.` : `Ninguno de estos ${batch.length} posts valía un comentario.`) + via);
     if (pending.size) roundTimer = setTimeout(runRound, 1000);
   }
 

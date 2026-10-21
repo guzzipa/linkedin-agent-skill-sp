@@ -32,6 +32,8 @@ Necesitás:
 
 La API de Anthropic va aparte de la suscripción a Claude.ai: tener Pro o Max no alcanza.
 
+**Respaldo automático.** En la configuración podés elegir hasta dos IA de respaldo: *"Si se acaba, seguir con"* y *"Y si ese también se acaba"*. Si la principal se queda sin saldo, llega a su límite de uso, tiene la key mal o no responde, la ronda sigue con la siguiente, y el panel avisa con cuál salió. La que falló queda en pausa un rato para no gastar intentos: 6 horas si no tiene saldo, 1 hora si la key está mal, 15 minutos si llegó al límite y 5 minutos si no respondió. Por ejemplo: Claude como principal, Gemini gratis de respaldo y DeepSeek de último.
+
 DeepSeek y OpenRouter están en la opción **DeepSeek, OpenRouter u otra compatible con OpenAI**. Esa misma opción sirve para cualquier API con el formato de OpenAI (Groq, Mistral, un modelo local): pegás la URL base y el modelo. **Ojo con los modelos más chicos o gratis:** respetan menos la regla de no inventar experiencias tuyas. Leé cada comentario antes de publicarlo.
 
 ## Instalación
@@ -161,6 +163,7 @@ LinkedIn cambia el HTML de su sitio seguido. Si algo deja de andar, [abrí un is
 | `src/content.js` | Corre dentro de LinkedIn. Detecta los posts (por el botón "Comentar" y la barra de reacciones), lee autor y texto, arma las rondas, muestra los paneles (shadow DOM) y publica. |
 | `src/background.js` | Service worker. Llama a la IA elegida con salida JSON estructurada, humaniza cada comentario y actualiza el contador del ícono. |
 | `src/gemini.js` | Cliente de la API de Gemini (Interactions API con `response_format`), sin dependencias. |
+| `src/fallback.js` | Respaldo entre proveedores: el orden, la clasificación de errores y las pausas. Sin dependencias de Chrome. |
 | `src/openai-compat.js` | Cliente para APIs compatibles con OpenAI (`/chat/completions` con `json_object`, y el esquema en el prompt). Presets de DeepSeek y OpenRouter. |
 | `src/prompt.js` | Prompts de **Sugerir** y de la ronda, esquemas de salida y valores por defecto de la configuración. |
 | `src/humanize.js` | Port a JS de [`skills/li-human/humanize.py`](../skills/li-human/humanize.py). Lee los léxicos de [`skills/li-human/lexicons/`](../skills/li-human/lexicons) (hay una sola copia para las skills y la extensión) y traduce sus regex de Python a JS. |

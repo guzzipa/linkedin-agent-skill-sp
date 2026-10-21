@@ -1,7 +1,10 @@
 export const MODELS = ["claude-opus-5-5", "claude-sonnet-5-5"];
 
 export const DEFAULT_SETTINGS = {
-  provider: "anthropic", // "anthropic" o "gemini"
+  provider: "anthropic", // "anthropic", "gemini" o "compat"
+  // Respaldo: si el principal se queda sin saldo, llega al límite o falla
+  fallback1: "none",
+  fallback2: "none",
   apiKey: "",
   model: "claude-opus-5-5",
   geminiKey: "",
