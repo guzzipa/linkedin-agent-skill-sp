@@ -20,10 +20,21 @@ export const COMPAT_PRESETS = {
 };
 
 export class CompatError extends Error {
-  constructor(message, status) {
+  constructor(message, status, retryAfterMs = 0) {
     super(message);
     this.status = status;
+    this.retryAfterMs = retryAfterMs;
   }
+}
+
+// Header Retry-After: segundos o fecha HTTP.
+function retryAfterHeader(res) {
+  const v = res.headers?.get?.("retry-after");
+  if (!v) return 0;
+  const secs = Number(v);
+  if (Number.isFinite(secs)) return secs * 1000;
+  const at = Date.parse(v);
+  return Number.isFinite(at) ? Math.max(0, at - Date.now()) : 0;
 }
 
 function friendly(status, body, label) {
@@ -76,7 +87,7 @@ export async function callCompat({ apiKey, baseUrl, model, system, user, schema,
     throw new CompatError(`No pude conectar con ${label}. Revisá la URL base.`, 0);
   }
   const body = await res.json().catch(() => null);
-  if (!res.ok) throw new CompatError(friendly(res.status, body, label), res.status);
+  if (!res.ok) throw new CompatError(friendly(res.status, body, label), res.status, res.status === 429 ? retryAfterHeader(res) : 0);
 
   const choice = body?.choices?.[0];
   const text = typeof choice?.message?.content === "string" ? choice.message.content.trim() : "";

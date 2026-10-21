@@ -4,14 +4,33 @@
 // La key viaja directo a generativelanguage.googleapis.com, igual que la de Anthropic.
 
 export const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
+// El de respaldo dentro de Gemini: tiene un límite gratuito mucho más alto.
+export const GEMINI_LITE = "gemini-3.5-flash-lite";
 
 const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions";
 
 export class GeminiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, retryAfterMs = 0) {
     super(message);
     this.status = status;
+    this.retryAfterMs = retryAfterMs; // cuánto falta para que se libere el límite, si la API lo dice
   }
+}
+
+// "Please retry in 13h43m30s", o RetryInfo { retryDelay: "49410s" }.
+export function retryAfterMs(body) {
+  const error = (Array.isArray(body) ? body[0] : body)?.error || {};
+  const m = (error.message || "").match(/retry in ((\d+)h)?((\d+)m)?(([\d.]+)s)?/i);
+  if (m && (m[2] || m[4] || m[6])) return ((+m[2] || 0) * 3600 + (+m[4] || 0) * 60 + (+m[6] || 0)) * 1000;
+  const info = (error.details || []).find((d) => /RetryInfo/.test(d["@type"] || ""));
+  const secs = parseFloat(info?.retryDelay);
+  return Number.isFinite(secs) ? secs * 1000 : 0;
+}
+
+export function humanWait(ms) {
+  const h = Math.floor(ms / 3600000);
+  const min = Math.ceil((ms % 3600000) / 60000);
+  return h ? `${h} h${min ? ` ${min} min` : ""}` : `${min} min`;
 }
 
 function friendly(status, body) {
@@ -21,7 +40,12 @@ function friendly(status, body) {
   if (status === 401 || /API key not valid|API_KEY_INVALID/i.test(msg)) return "API key de Gemini inválida.";
   if (status === 403) return "La API key de Gemini no tiene permiso para este modelo.";
   if (status === 404) return "Ese modelo de Gemini no existe o no está disponible para tu key.";
-  if (status === 429) return "Llegaste al límite de uso de Gemini (el nivel gratuito tiene límites por minuto y por día). Reintento solo en un rato.";
+  if (status === 429) {
+    const wait = retryAfterMs(body);
+    return wait
+      ? `Llegaste al límite de uso de Gemini (nivel gratuito). Se libera en ${humanWait(wait)}.`
+      : "Llegaste al límite de uso de Gemini (el nivel gratuito tiene límites por minuto y por día). Reintento solo en un rato.";
+  }
   if (status >= 500) return "La API de Gemini está con problemas. Reintento solo en un rato.";
   return `Error de la API de Gemini (${status}): ${msg || "sin detalle"}`;
 }
@@ -56,7 +80,7 @@ export async function callGemini({ apiKey, model, system, user, schema, maxToken
     throw new GeminiError("No pude conectar con la API de Gemini.", 0);
   }
   const body = await res.json().catch(() => null);
-  if (!res.ok) throw new GeminiError(friendly(res.status, body), res.status);
+  if (!res.ok) throw new GeminiError(friendly(res.status, body), res.status, res.status === 429 ? retryAfterMs(body) : 0);
 
   const text = outputText(body);
   if (!text) {

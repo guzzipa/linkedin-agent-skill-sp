@@ -77,3 +77,9 @@ test("clasifica los errores", () => {
   assert.equal(classify(err(503, "")).kind, "caído");
   assert.equal(classify(err(200, "Gemini no devolvió JSON válido.")).cooldown, 0);
 });
+
+test("la pausa por límite usa el tiempo que dijo la API (con mínimo de 15 min y máximo de 24 h)", () => {
+  assert.equal(classify(Object.assign(err(429, ""), { retryAfterMs: 13 * 3600e3 })).cooldown, 13 * 3600e3);
+  assert.equal(classify(Object.assign(err(429, ""), { retryAfterMs: 1000 })).cooldown, 15 * 60e3);
+  assert.equal(classify(Object.assign(err(429, ""), { retryAfterMs: 99 * 3600e3 })).cooldown, 24 * 3600e3);
+});

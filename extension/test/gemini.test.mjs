@@ -59,3 +59,13 @@ test("errores con mensajes claros", async () => {
   mockFetch(200, { status: "incomplete", steps: [{ type: "thought" }] });
   await assert.rejects(callGemini({ apiKey: "x", model: "m", system: "s", user: "u", schema: {} }), /estado: incomplete/);
 });
+
+test("lee cuánto falta para que se libere el límite", async () => {
+  const { retryAfterMs, humanWait } = await import("../src/gemini.js");
+  assert.equal(retryAfterMs([{ error: { message: "Please retry in 13h43m30s or upgrade" } }]), (13 * 3600 + 43 * 60 + 30) * 1000);
+  assert.equal(retryAfterMs({ error: { message: "x", details: [{ "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "42s" }] } }), 42000);
+  assert.equal(retryAfterMs({ error: { message: "sin dato" } }), 0);
+  assert.equal(humanWait((13 * 3600 + 43 * 60 + 30) * 1000), "13 h 44 min");
+  mockFetch(429, { error: { message: "limit: 20 requests per day on Free Tier. Please retry in 2h0m0s" } });
+  await assert.rejects(callGemini({ apiKey: "x", model: "m", system: "s", user: "u" }), (e) => e.retryAfterMs === 7200000 && /Se libera en 2 h/.test(e.message));
+});

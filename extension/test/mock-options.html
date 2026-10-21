@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mock options</title>
+<script>
+  // Carga dist/options.html con chrome.* simulado, para probar la configuración sin instalar la extensión.
+  (async () => {
+    const html = await fetch("../dist/options.html").then((r) => r.text());
+    const mock = `<script>
+      window.__store = { provider: "gemini", geminiKey: "AQ.test", fallback1: "compat", fallback2: "none", compatKey: "sk-or-test", compatPreset: "openrouter", compatBaseUrl: "https://openrouter.ai/api/v1", compatModel: "deepseek/deepseek-chat:free", lic_cooldowns: { gemini: 9e15 }, lic_model_pauses: { "gemini:gemini-3.8-flash": 9e15 } };
+      window.__sent = [];
+      window.chrome = {
+        storage: { local: {
+          get: async (keys) => Object.fromEntries([].concat(keys).filter((k) => k in __store).map((k) => [k, structuredClone(__store[k])])),
+          set: async (o) => Object.assign(__store, structuredClone(o)),
+        }, onChanged: { addListener() {} } },
+        permissions: { contains: async () => true, request: async () => true },
+        runtime: { sendMessage: async (msg) => {
+          __sent.push(msg);
+          if (msg.type === "test") return { ok: true, results: msg.providers.map((p) => p.provider === "gemini"
+            ? { provider: "gemini", ok: true, model: "gemini-3.5-flash-lite", note: "3.8 Flash llegó a su límite, se libera en 13 h; mientras tanto uso Flash-Lite" }
+            : { provider: p.provider, ok: false, error: "API key de OpenRouter inválida." }) };
+          return { ok: true };
+        } },
+      };
+    <\/script><script src="../dist/options.js"><\/script>`;
+    document.open();
+    document.write(html.replace('<script src="options.js"><\/script>', mock));
+    document.close();
+  })();
+</script>

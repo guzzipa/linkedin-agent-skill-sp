@@ -32,7 +32,11 @@ Necesitás:
 
 La API de Anthropic va aparte de la suscripción a Claude.ai: tener Pro o Max no alcanza.
 
-**Respaldo automático.** En la configuración podés elegir hasta dos IA de respaldo: *"Si se acaba, seguir con"* y *"Y si ese también se acaba"*. Si la principal se queda sin saldo, llega a su límite de uso, tiene la key mal o no responde, la ronda sigue con la siguiente, y el panel avisa con cuál salió. La que falló queda en pausa un rato para no gastar intentos: 6 horas si no tiene saldo, 1 hora si la key está mal, 15 minutos si llegó al límite y 5 minutos si no respondió. Por ejemplo: Claude como principal, Gemini gratis de respaldo y DeepSeek de último.
+**Respaldo automático.** En la configuración podés elegir hasta dos IA de respaldo: *"Si se acaba, seguir con"* y *"Y si ese también se acaba"*. Si la principal se queda sin saldo, llega a su límite de uso, tiene la key mal o no responde, la ronda sigue con la siguiente, y el panel avisa con cuál salió. La que falló queda en pausa un rato para no gastar intentos: 6 horas si no tiene saldo, 1 hora si la key está mal, 15 minutos si llegó al límite y 5 minutos si no respondió. Por ejemplo: Claude como principal, Gemini gratis de respaldo y DeepSeek de último. Si la API avisa cuándo se libera el límite (como el diario de Gemini), la pausa dura eso. **Probar conexión** prueba la principal y los respaldos, y muestra el estado de cada una.
+
+**Gemini gratis:** el nivel gratuito de Gemini 3.8 Flash permite unos 20 pedidos por día, y cada ronda o ✨ Sugerir es un pedido. Cuando se agota, la extensión pasa sola a Gemini 3.5 Flash-Lite, que tiene mucho más cupo, sin cambiar de proveedor, y vuelve a 3.8 Flash cuando se libera.
+
+**Anécdotas inventadas:** si un comentario cuenta algo que "hiciste" ("lo resolvimos", "nos pasó", "en mi experiencia"), la tarjeta lo marca con ⚠ para que confirmes que es real. Los modelos más chicos a veces las inventan aunque el prompt lo prohíba.
 
 DeepSeek y OpenRouter están en la opción **DeepSeek, OpenRouter u otra compatible con OpenAI**. Esa misma opción sirve para cualquier API con el formato de OpenAI (Groq, Mistral, un modelo local): pegás la URL base y el modelo. **Ojo con los modelos más chicos o gratis:** respetan menos la regla de no inventar experiencias tuyas. Leé cada comentario antes de publicarlo.
 
@@ -191,7 +195,9 @@ npm run build
 python3 -m http.server 8765
 ```
 
-Abrí `http://localhost:8765/test/mock-feed.html`: a los 8 segundos aparecen tres sugerencias.
+Abrí `http://localhost:8765/test/mock-feed.html`: a los 8 segundos aparecen tres sugerencias. `test/mock-options.html` hace lo mismo con la página de configuración.
+
+`npm test` incluye `test/background.test.mjs`, que compila el service worker real y lo corre con `chrome` y `fetch` simulados. Usa las respuestas reales de cada API (Claude sin saldo, el límite diario de Gemini, el 429 de OpenRouter) para probar el respaldo de punta a punta.
 
 **Si LinkedIn cambia su HTML.** Desde 2026 el feed casi no tiene clases legibles. Lo que la extensión usa hoy para orientarse:
 
