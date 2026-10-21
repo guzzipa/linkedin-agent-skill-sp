@@ -466,7 +466,7 @@
   const PROMOTED_RE = /(^|\n)\s*(Promocionado|Promoted|Patrocinado|Sponsored)\s*($|\n)/i;
 
   async function getData() {
-    const d = await store.get(["lic_queue", "lic_done", "lic_log", "autoRound", "maxPerRound", "maxPerDay", "skipAbove", "apiKey", "provider", "geminiKey"]);
+    const d = await store.get(["lic_queue", "lic_done", "lic_log", "autoRound", "maxPerRound", "maxPerDay", "skipAbove", "apiKey", "provider", "geminiKey", "compatKey"]);
     return {
       queue: d.lic_queue || [],
       done: d.lic_done || {},
@@ -475,7 +475,7 @@
       maxPerRound: Number(d.maxPerRound) || 5,
       maxPerDay: Number(d.maxPerDay) || 15,
       skipAbove: Number(d.skipAbove) || 40,
-      hasKey: d.provider === "gemini" ? !!d.geminiKey : !!d.apiKey,
+      hasKey: !!({ gemini: d.geminiKey, compat: d.compatKey }[d.provider] ?? d.apiKey),
     };
   }
 

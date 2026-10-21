@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Commenter",
-  "version": "0.4.0",
-  "description": "Hace tu ronda de comentarios en LinkedIn con Claude o Gemini. Elige los posts, escribe los comentarios y vos publicás con un clic.",
+  "version": "0.5.0",
+  "description": "Hace tu ronda de comentarios en LinkedIn con Claude, Gemini, DeepSeek u otra IA. Elige los posts, escribe los comentarios y vos publicás con un clic.",
   "permissions": [
     "storage"
   ],
   "host_permissions": [
     "https://api.anthropic.com/*",
-    "https://generativelanguage.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.deepseek.com/*",
+    "https://openrouter.ai/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -31,5 +33,10 @@
   "action": {
     "default_title": "LinkedIn Commenter: configuración"
   },
-  "homepage_url": "https://github.com/guzzipa/linkedin-agent-skill-sp/tree/main/extension"
+  "homepage_url": "https://github.com/guzzipa/linkedin-agent-skill-sp/tree/main/extension",
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ]
 }
