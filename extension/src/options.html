@@ -41,6 +41,28 @@
     <option value="compat">DeepSeek, OpenRouter u otra compatible con OpenAI: muy barata o gratis</option>
   </select>
 
+  <div class="grid">
+    <div>
+      <label for="fallback1">Si se acaba, seguir con</label>
+      <select id="fallback1">
+        <option value="none">Nada</option>
+        <option value="anthropic">Claude</option>
+        <option value="gemini">Gemini</option>
+        <option value="compat">DeepSeek, OpenRouter u otra</option>
+      </select>
+    </div>
+    <div>
+      <label for="fallback2">Y si ese también se acaba</label>
+      <select id="fallback2">
+        <option value="none">Nada</option>
+        <option value="anthropic">Claude</option>
+        <option value="gemini">Gemini</option>
+        <option value="compat">DeepSeek, OpenRouter u otra</option>
+      </select>
+    </div>
+  </div>
+  <p class="help">Si la IA principal se queda sin saldo, llega a su límite de uso, tiene la key mal o no responde, la ronda sigue con la siguiente. La que falló queda en pausa un rato (de 5 minutos a 6 horas, según el motivo) para no gastar intentos. Cada una necesita su key cargada abajo.</p>
+
   <div data-provider="anthropic">
     <label for="apiKey">API key de Anthropic</label>
     <p class="help">Sacala de <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys, y cargá saldo en Billing. La suscripción a Claude.ai no sirve para la API.</p>

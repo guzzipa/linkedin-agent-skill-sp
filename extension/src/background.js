@@ -7,6 +7,7 @@ import {
 import { humanize } from "./humanize.js";
 import { GEMINI_MODELS, GeminiError, callGemini } from "./gemini.js";
 import { COMPAT_PRESETS, CompatError, callCompat } from "./openai-compat.js";
+import { fallbackNote, providerChain, runWithFallback } from "./fallback.js";
 
 const compatLabel = (s) => COMPAT_PRESETS[s.compatPreset]?.label === "Otro" ? "la API" : COMPAT_PRESETS[s.compatPreset]?.label || "la API";
 
@@ -54,19 +55,17 @@ async function learn({ force = false } = {}) {
   return { rules, examples: fb.length, pending: 0, updated: true };
 }
 
-function keyFor(settings) {
-  const key = { gemini: settings.geminiKey, compat: settings.compatKey }[settings.provider] ?? settings.apiKey;
-  if (!key) throw new Error("Falta la API key. Abrí la configuración de la extensión.");
-  return key;
+function keyOf(settings, provider) {
+  return { anthropic: settings.apiKey, gemini: settings.geminiKey, compat: settings.compatKey }[provider] || "";
 }
 
-// Un pedido con salida JSON al proveedor elegido. Devuelve { data, model }.
-async function callJson(settings, { system, user, schema }) {
-  const apiKey = keyFor(settings);
-  if (settings.provider === "gemini") {
+// Un pedido con salida JSON a un proveedor puntual. Devuelve { data, model }.
+async function callProvider(settings, provider, { system, user, schema }) {
+  const apiKey = keyOf(settings, provider);
+  if (provider === "gemini") {
     return callGemini({ apiKey, model: settings.geminiModel, system, user, schema });
   }
-  if (settings.provider === "compat") {
+  if (provider === "compat") {
     return callCompat({ apiKey, baseUrl: settings.compatBaseUrl, model: settings.compatModel, system, user, schema, label: compatLabel(settings) });
   }
   const response = await makeClient(apiKey).beta.messages.create({
@@ -75,6 +74,29 @@ async function callJson(settings, { system, user, schema }) {
     messages: [{ role: "user", content: user }],
   });
   return { data: readJson(response), model: response.model };
+}
+
+// Prueba el proveedor principal y, si se queda sin saldo, llega al límite o falla, los de
+// respaldo en orden. Devuelve { data, model, note }; note explica si hubo que cambiar.
+async function callJson(settings, req) {
+  const chain = providerChain(settings, (p) => !!keyOf(settings, p));
+  const { lic_cooldowns: cooldowns = {} } = await chrome.storage.local.get("lic_cooldowns");
+  try {
+    // Los errores pasan por describeError para que el panel los muestre claros y en castellano.
+    const call = async (p) => {
+      try {
+        return await callProvider(settings, p, req);
+      } catch (e) {
+        throw Object.assign(new Error(describeError(e)), { status: e?.status ?? 0 });
+      }
+    };
+    const out = await runWithFallback({ chain, cooldowns, call });
+    await chrome.storage.local.set({ lic_cooldowns: out.cooldowns });
+    return { ...out.result, note: fallbackNote(out) };
+  } catch (err) {
+    if (err.cooldowns) await chrome.storage.local.set({ lic_cooldowns: err.cooldowns });
+    throw err;
+  }
 }
 
 function makeClient(apiKey) {
@@ -114,7 +136,7 @@ async function generate({ author, post, hint }) {
   const settings = await getSettings();
   if (!post?.trim()) throw new Error("No hay texto del post para comentar.");
 
-  const { data, model } = await callJson(settings, {
+  const { data, model, note } = await callJson(settings, {
     system: buildSystemPrompt(settings, await getLearning(settings)),
     user: buildUserMessage({ author, post, hint }),
     schema: OUTPUT_SCHEMA,
@@ -122,6 +144,7 @@ async function generate({ author, post, hint }) {
   return {
     comments: data.comments.slice(0, 3).map((c) => ({ ...c, ...clean(c.text) })),
     model,
+    note,
   };
 }
 
@@ -131,7 +154,7 @@ async function round({ posts }) {
   const settings = await getSettings();
   if (!posts?.length) return { picks: [] };
 
-  const { data, model } = await callJson(settings, {
+  const { data, model, note } = await callJson(settings, {
     system: buildRoundSystemPrompt(settings, await getLearning(settings)),
     user: buildRoundMessage(posts),
     schema: ROUND_SCHEMA,
@@ -140,7 +163,7 @@ async function round({ posts }) {
   const picks = data.posts
     .filter((p) => known.has(p.id))
     .map((p) => (p.comentar && p.comentario.trim() ? { ...p, ...clean(p.comentario) } : { ...p, text: "", flags: [] }));
-  return { picks, model };
+  return { picks, model, note };
 }
 
 function setBadge({ count }) {

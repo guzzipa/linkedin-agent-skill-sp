@@ -21,12 +21,12 @@ function readForm() {
   return Object.fromEntries(FIELDS.map((f) => [f, readField(f)]));
 }
 
-// Muestra solo la key y el modelo del proveedor elegido.
+// Muestra la key y el modelo del proveedor principal y de los de respaldo.
 function showProvider() {
-  const provider = $("provider").value;
-  for (const el of document.querySelectorAll("[data-provider]")) el.hidden = el.dataset.provider !== provider;
+  const used = new Set([$("provider").value, $("fallback1").value, $("fallback2").value]);
+  for (const el of document.querySelectorAll("[data-provider]")) el.hidden = !used.has(el.dataset.provider);
 }
-$("provider").addEventListener("change", showProvider);
+for (const id of ["provider", "fallback1", "fallback2"]) $(id).addEventListener("change", showProvider);
 
 // ---------- Compatible con OpenAI ----------
 
@@ -77,7 +77,8 @@ async function load() {
 
 $("save").addEventListener("click", async () => {
   const form = readForm();
-  if (form.provider === "compat" && !(await ensureHostPermission(form.compatBaseUrl))) {
+  const usesCompat = [form.provider, form.fallback1, form.fallback2].includes("compat");
+  if (usesCompat && !(await ensureHostPermission(form.compatBaseUrl))) {
     return setStatus("Sin permiso para conectarse a esa URL: no se guardó.", true);
   }
   await chrome.storage.local.set(form);
