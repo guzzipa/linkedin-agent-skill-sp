@@ -5,11 +5,14 @@ import {
   LEARN_SCHEMA, buildLearnMessage, buildLearnPrompt,
 } from "./prompt.js";
 import { humanize } from "./humanize.js";
-import { GEMINI_MODELS, GeminiError, callGemini } from "./gemini.js";
+import { GEMINI_LITE, GEMINI_MODELS, GeminiError, callGemini, humanWait } from "./gemini.js";
 import { COMPAT_PRESETS, CompatError, callCompat } from "./openai-compat.js";
 import { fallbackNote, providerChain, runWithFallback } from "./fallback.js";
 
 const compatLabel = (s) => COMPAT_PRESETS[s.compatPreset]?.label === "Otro" ? "la API" : COMPAT_PRESETS[s.compatPreset]?.label || "la API";
+// Nombres para los avisos: "con OpenRouter, porque Gemini llegó al límite de uso".
+const labelsFor = (s) => ({ anthropic: "Claude", gemini: "Gemini", compat: compatLabel(s) });
+const pauseFor = (ms) => Math.min(Math.max(ms || 0, 15 * 60 * 1000), 24 * 60 * 60 * 1000);
 
 async function getSettings() {
   const stored = await chrome.storage.local.get(Object.keys(DEFAULT_SETTINGS));
@@ -59,12 +62,34 @@ function keyOf(settings, provider) {
   return { anthropic: settings.apiKey, gemini: settings.geminiKey, compat: settings.compatKey }[provider] || "";
 }
 
-// Un pedido con salida JSON a un proveedor puntual. Devuelve { data, model }.
-async function callProvider(settings, provider, { system, user, schema }) {
-  const apiKey = keyOf(settings, provider);
-  if (provider === "gemini") {
-    return callGemini({ apiKey, model: settings.geminiModel, system, user, schema });
+// Gemini: si el modelo elegido llegó a su límite (el gratuito de 3.8 Flash es de 20 pedidos
+// por día), probar con Flash-Lite, que tiene mucho más cupo, antes de cambiar de proveedor.
+// `pauses` guarda hasta cuándo no vale la pena intentar con el modelo agotado.
+async function callGeminiSmart(settings, req, pauses, now = Date.now()) {
+  const apiKey = keyOf(settings, "gemini");
+  const preferred = settings.geminiModel;
+  const pauseKey = `gemini:${preferred}`;
+  let why = "está en pausa";
+  if (preferred !== GEMINI_LITE) {
+    if (!(pauses[pauseKey] > now)) {
+      try {
+        return await callGemini({ apiKey, model: preferred, ...req });
+      } catch (e) {
+        if (e.status !== 429) throw e;
+        pauses[pauseKey] = now + pauseFor(e.retryAfterMs);
+        why = "llegó a su límite";
+      }
+    }
+    const res = await callGemini({ apiKey, model: GEMINI_LITE, ...req });
+    return { ...res, downgraded: `Gemini Flash-Lite, porque Gemini 3.8 Flash ${why}` };
   }
+  return callGemini({ apiKey, model: GEMINI_LITE, ...req });
+}
+
+// Un pedido con salida JSON a un proveedor puntual. Devuelve { data, model }.
+async function callProvider(settings, provider, { system, user, schema }, pauses = {}) {
+  const apiKey = keyOf(settings, provider);
+  if (provider === "gemini") return callGeminiSmart(settings, { system, user, schema }, pauses);
   if (provider === "compat") {
     return callCompat({ apiKey, baseUrl: settings.compatBaseUrl, model: settings.compatModel, system, user, schema, label: compatLabel(settings) });
   }
@@ -80,21 +105,25 @@ async function callProvider(settings, provider, { system, user, schema }) {
 // respaldo en orden. Devuelve { data, model, note }; note explica si hubo que cambiar.
 async function callJson(settings, req) {
   const chain = providerChain(settings, (p) => !!keyOf(settings, p));
-  const { lic_cooldowns: cooldowns = {} } = await chrome.storage.local.get("lic_cooldowns");
+  const { lic_cooldowns: cooldowns = {}, lic_model_pauses: modelPauses = {} } =
+    await chrome.storage.local.get(["lic_cooldowns", "lic_model_pauses"]);
+  const pauses = { ...modelPauses };
+  const labels = labelsFor(settings);
+  // Los errores pasan por describeError para que el panel los muestre claros y en castellano.
+  const call = async (p) => {
+    try {
+      return await callProvider(settings, p, req, pauses);
+    } catch (e) {
+      throw Object.assign(new Error(describeError(e)), { status: e?.status ?? 0, retryAfterMs: e?.retryAfterMs || 0 });
+    }
+  };
   try {
-    // Los errores pasan por describeError para que el panel los muestre claros y en castellano.
-    const call = async (p) => {
-      try {
-        return await callProvider(settings, p, req);
-      } catch (e) {
-        throw Object.assign(new Error(describeError(e)), { status: e?.status ?? 0 });
-      }
-    };
-    const out = await runWithFallback({ chain, cooldowns, call });
-    await chrome.storage.local.set({ lic_cooldowns: out.cooldowns });
-    return { ...out.result, note: fallbackNote(out) };
+    const out = await runWithFallback({ chain, cooldowns, call, labels });
+    await chrome.storage.local.set({ lic_cooldowns: out.cooldowns, lic_model_pauses: pauses });
+    const note = [out.result.downgraded && `con ${out.result.downgraded}`, fallbackNote(out, labels)].filter(Boolean).join("; ");
+    return { ...out.result, note };
   } catch (err) {
-    if (err.cooldowns) await chrome.storage.local.set({ lic_cooldowns: err.cooldowns });
+    await chrome.storage.local.set({ lic_model_pauses: pauses, ...(err.cooldowns && { lic_cooldowns: err.cooldowns }) });
     throw err;
   }
 }
@@ -127,9 +156,22 @@ function readJson(response) {
 }
 
 // Pasa cada borrador por el humanizador: arregla lo seguro y devuelve lo que hay que mirar.
+// Frases que cuentan algo que el usuario hizo o vivió. Los modelos chicos a veces las
+// inventan aunque el prompt lo prohíba, así que se marcan para que el usuario las confirme.
+const EXPERIENCE_RE =
+  /\b(nos pas[óo]|me pas[óo]|(lo |la |los |las )?(resolvimos|implementamos|lanzamos|armamos|hicimos|construimos|logramos|probamos|medimos|migramos|vimos)|en mi experiencia|cuando (estaba|trabajaba|lider[ée]) en|we (built|did|launched|solved|saw|tried|shipped|migrated)|in my experience|at my (last|previous) (company|job))\b/i;
+
 function clean(text) {
   const h = humanize(text);
-  return { text: h.text, flags: h.flags.map((f) => ({ name: f.name, fix: f.fix })) };
+  const flags = h.flags.map((f) => ({ name: f.name, fix: f.fix }));
+  const claim = h.text.match(EXPERIENCE_RE);
+  if (claim) {
+    flags.unshift({
+      name: `Cuenta una experiencia tuya ("${claim[0]}"): confirmá que sea real`,
+      fix: "Los modelos a veces inventan anécdotas. Si no te pasó, cambiala por una opinión.",
+    });
+  }
+  return { text: h.text, flags };
 }
 
 async function generate({ author, post, hint }) {
@@ -172,37 +214,50 @@ function setBadge({ count }) {
   return Promise.resolve({});
 }
 
-async function testConnection({ provider, apiKey, model, baseUrl, preset }) {
+const OK_SCHEMA = { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"], additionalProperties: false };
+
+// Prueba una IA con los datos del formulario (todavía sin guardar).
+async function testOne({ provider, apiKey, model, baseUrl, preset }) {
+  if (!apiKey) throw new Error("falta la API key");
   if (provider === "compat") {
     const res = await callCompat({
-      apiKey, baseUrl, model,
-      system: "Respondés en json.",
-      user: "Respondé {\"ok\": true}",
-      schema: { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"] },
-      maxTokens: 512,
-      label: compatLabel({ compatPreset: preset }),
+      apiKey, baseUrl, model, system: "Respondés en json.", user: "Respondé {\"ok\": true}",
+      schema: OK_SCHEMA, maxTokens: 512, label: compatLabel({ compatPreset: preset }),
     });
     return { model: res.model };
   }
   if (provider === "gemini") {
-    const res = await callGemini({
-      apiKey,
-      model: GEMINI_MODELS.includes(model) ? model : DEFAULT_SETTINGS.geminiModel,
-      system: "Respondés en JSON.",
-      user: "Respondé {\"ok\": true}",
-      schema: { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"] },
-      maxTokens: 1024,
-    });
-    return { model: res.model };
+    const preferred = GEMINI_MODELS.includes(model) ? model : DEFAULT_SETTINGS.geminiModel;
+    const ask = (m) => callGemini({ apiKey, model: m, system: "Respondés en JSON.", user: "Respondé {\"ok\": true}", schema: OK_SCHEMA, maxTokens: 1024 });
+    try {
+      return { model: (await ask(preferred)).model };
+    } catch (e) {
+      if (e.status !== 429 || preferred === GEMINI_LITE) throw e;
+      const res = await ask(GEMINI_LITE);
+      const wait = e.retryAfterMs ? `, se libera en ${humanWait(e.retryAfterMs)}` : "";
+      return { model: res.model, note: `3.8 Flash llegó a su límite${wait}; mientras tanto uso Flash-Lite` };
+    }
   }
-  const client = makeClient(apiKey);
-  const response = await client.beta.messages.create({
+  const response = await makeClient(apiKey).beta.messages.create({
     ...requestParams(MODELS.includes(model) ? model : DEFAULT_SETTINGS.model),
     output_config: { effort: "low" },
     max_tokens: 1024,
     messages: [{ role: "user", content: "Respondé solo: OK" }],
   });
   return { model: response.model };
+}
+
+// Prueba la principal y los respaldos; devuelve el estado de cada una.
+async function testConnection({ providers }) {
+  const results = [];
+  for (const p of providers) {
+    try {
+      results.push({ provider: p.provider, ok: true, ...(await testOne(p)) });
+    } catch (e) {
+      results.push({ provider: p.provider, ok: false, error: describeError(e) });
+    }
+  }
+  return { results };
 }
 
 function describeError(err) {

@@ -81,29 +81,55 @@ $("save").addEventListener("click", async () => {
   if (usesCompat && !(await ensureHostPermission(form.compatBaseUrl))) {
     return setStatus("Sin permiso para conectarse a esa URL: no se guardó.", true);
   }
-  await chrome.storage.local.set(form);
+  // Con la configuración nueva (otra key, saldo cargado), las pausas anteriores ya no valen.
+  await chrome.storage.local.set({ ...form, lic_cooldowns: {}, lic_model_pauses: {} });
   setStatus("Guardado.");
 });
 
+const LABELS = { anthropic: "Claude", gemini: "Gemini", compat: "" };
+
+// Lo que hay que probar: la principal y los respaldos, con los datos del formulario.
+function providersToTest(f) {
+  const order = [f.provider, f.fallback1, f.fallback2].filter((p, i, all) => p && p !== "none" && all.indexOf(p) === i);
+  return order.map((provider) => ({
+    provider,
+    apiKey: { anthropic: f.apiKey, gemini: f.geminiKey, compat: f.compatKey }[provider],
+    model: { anthropic: f.model, gemini: f.geminiModel, compat: f.compatModel }[provider],
+    baseUrl: f.compatBaseUrl,
+    preset: f.compatPreset,
+  }));
+}
+
+// Avisos antes de gastar un pedido: una key en el campo de otro proveedor.
+function keyMismatch(f) {
+  if (/^(AIza|AQ\.)/.test(f.apiKey)) return "La key del campo de Anthropic es de Google: pegala en API key de Gemini.";
+  if (f.geminiKey.startsWith("sk-ant-")) return "La key del campo de Gemini es de Anthropic: pegala en API key de Anthropic.";
+  if (/^(AIza|AQ\.)/.test(f.compatKey) || f.compatKey.startsWith("sk-ant-")) return "La key del campo de DeepSeek / OpenRouter es de otro proveedor.";
+  return "";
+}
+
 $("test").addEventListener("click", async () => {
   const f = readForm();
-  if (f.provider === "compat") {
-    if (!f.compatKey) return setStatus("Pegá la API key primero.", true);
-    if (!(await ensureHostPermission(f.compatBaseUrl))) return setStatus("Sin permiso para conectarse a esa URL.", true);
-    setStatus("Probando…");
-    const res = await chrome.runtime.sendMessage({ type: "test", provider: "compat", apiKey: f.compatKey, model: f.compatModel, baseUrl: f.compatBaseUrl, preset: f.compatPreset });
-    return setStatus(res.ok ? `Conexión OK (${res.model}).` : res.error, !res.ok);
+  const providers = providersToTest(f);
+  const mismatch = keyMismatch(f);
+  if (mismatch) return setStatus(mismatch, true);
+  if (providers.some((p) => !p.apiKey)) {
+    const missing = providers.filter((p) => !p.apiKey).map((p) => LABELS[p.provider] || $("compatPreset").selectedOptions[0].text.split(":")[0]);
+    return setStatus(`Falta la API key de: ${missing.join(", ")}.`, true);
   }
-  const gemini = f.provider === "gemini";
-  const apiKey = gemini ? f.geminiKey : f.apiKey;
-  if (!apiKey) return setStatus("Pegá la API key primero.", true);
-  // Una key de Google (AIza… o AQ.…) en el campo de Anthropic, o al revés: avisar antes de probar.
-  const googleKey = /^(AIza|AQ\.)/.test(apiKey);
-  if (!gemini && googleKey) return setStatus("Esa es una key de Google: en Modelo de IA elegí Gemini y pegala en API key de Gemini.", true);
-  if (gemini && apiKey.startsWith("sk-ant-")) return setStatus("Esa es una key de Anthropic: en Modelo de IA elegí Claude.", true);
-  setStatus("Probando…");
-  const res = await chrome.runtime.sendMessage({ type: "test", provider: f.provider, apiKey, model: gemini ? f.geminiModel : f.model });
-  setStatus(res.ok ? `Conexión OK (${res.model}).` : res.error, !res.ok);
+  if (providers.some((p) => p.provider === "compat") && !(await ensureHostPermission(f.compatBaseUrl))) {
+    return setStatus("Sin permiso para conectarse a la URL de la API compatible.", true);
+  }
+  setStatus(providers.length > 1 ? `Probando ${providers.length} IA…` : "Probando…");
+  const res = await chrome.runtime.sendMessage({ type: "test", providers });
+  if (!res.ok) return setStatus(res.error, true);
+  const compatName = $("compatPreset").selectedOptions[0].text.split(":")[0];
+  const lines = res.results.map((r, i) => {
+    const name = r.provider === "compat" ? compatName : LABELS[r.provider];
+    const role = i === 0 ? "principal" : `respaldo ${i}`;
+    return r.ok ? `✓ ${name} (${role}): OK, ${r.model}${r.note ? ` (${r.note})` : ""}` : `✗ ${name} (${role}): ${r.error}`;
+  });
+  setStatus(lines.join("\n"), res.results.every((r) => !r.ok));
 });
 
 // ---------- Lo que aprendió ----------

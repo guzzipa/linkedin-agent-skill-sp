@@ -14,7 +14,9 @@ export function classify(err) {
     return { kind: "sin saldo", cooldown: 6 * 60 * MIN };
   }
   if (status === 429 || /límite de uso|rate limit|quota|exhausted/i.test(msg)) {
-    return { kind: "límite de uso", cooldown: 15 * MIN };
+    // Si la API dijo cuándo se libera (p. ej. el límite diario de Gemini), esperar eso.
+    const told = err?.retryAfterMs > 0 ? Math.min(err.retryAfterMs, 24 * 60 * MIN) : 0;
+    return { kind: "límite de uso", cooldown: Math.max(told, 15 * MIN) };
   }
   if (status === 401 || status === 403 || /inválida|no tiene permiso/i.test(msg)) {
     return { kind: "key inválida", cooldown: 60 * MIN };
@@ -34,7 +36,7 @@ export function providerChain(settings, hasKey) {
 // Ejecuta call(provider) siguiendo la cadena. Devuelve
 // { result, provider, skipped: [{provider, kind, message}], cooldowns } o lanza un error
 // que resume por qué falló cada uno. `cooldowns` es { provider: hastaCuándo } actualizado.
-export async function runWithFallback({ chain, call, cooldowns = {}, now = Date.now() }) {
+export async function runWithFallback({ chain, call, cooldowns = {}, now = Date.now(), labels = PROVIDER_LABELS }) {
   if (!chain.length) throw new Error("Falta la API key. Abrí la configuración de la extensión.");
   const next = { ...cooldowns };
   // Los que están en pausa no se intentan, salvo que estén todos en pausa.
@@ -58,7 +60,7 @@ export async function runWithFallback({ chain, call, cooldowns = {}, now = Date.
   const error = new Error(
     skipped
       .filter((s) => s.message)
-      .map((s) => `${PROVIDER_LABELS[s.provider] || s.provider}: ${s.message}`)
+      .map((s) => `${labels[s.provider] || s.provider}: ${s.message}`)
       .join(" · ") || "Ninguna IA respondió."
   );
   error.cooldowns = next;
@@ -76,10 +78,10 @@ const WHY = {
 };
 
 // Texto corto para el panel: "con Gemini, porque Claude no tiene saldo".
-export function fallbackNote({ provider, skipped }) {
+export function fallbackNote({ provider, skipped }, labels = PROVIDER_LABELS) {
   if (!skipped.length) return "";
   const why = skipped
-    .map((s) => `${PROVIDER_LABELS[s.provider]} ${WHY[s.kind] || "falló"}`)
+    .map((s) => `${labels[s.provider] || s.provider} ${WHY[s.kind] || "falló"}`)
     .join(", ");
-  return `con ${PROVIDER_LABELS[provider]}, porque ${why}`;
+  return `con ${labels[provider] || provider}, porque ${why}`;
 }
