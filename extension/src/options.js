@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS, MODELS } from "./prompt.js";
 import { GEMINI_MODELS } from "./gemini.js";
+import { COMPAT_PRESETS } from "./openai-compat.js";
 
 const FIELDS = Object.keys(DEFAULT_SETTINGS);
 const $ = (id) => document.getElementById(id);
@@ -27,6 +28,38 @@ function showProvider() {
 }
 $("provider").addEventListener("change", showProvider);
 
+// ---------- Compatible con OpenAI ----------
+
+const COMPAT_HELP = {
+  deepseek: 'Sacá la key en <a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com</a> y cargá unos dólares de saldo: con este uso alcanza para meses. <strong>Ojo:</strong> DeepSeek procesa los datos en China, y lo que le mandás incluye posts de otras personas.',
+  openrouter: 'Sacá la key gratis en <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a>. En <a href="https://openrouter.ai/models?q=free" target="_blank">openrouter.ai/models</a> elegí un modelo que termine en <code>:free</code> y pegá su nombre en Modelo. Los gratis tienen límites por día y cada proveedor tiene su propia política de datos.',
+  custom: "Cualquier API compatible con OpenAI que tenga <code>/chat/completions</code>. Pegá la URL base (por ejemplo, <code>https://api.groq.com/openai/v1</code>) y el nombre exacto del modelo. Chrome te va a pedir permiso para conectarse a esa dirección.",
+};
+
+function showCompatHelp() {
+  $("compatHelp").innerHTML = COMPAT_HELP[$("compatPreset").value] || "";
+}
+
+// Al cambiar de servicio, completar URL y modelo con los de ese servicio.
+$("compatPreset").addEventListener("change", () => {
+  const p = COMPAT_PRESETS[$("compatPreset").value];
+  $("compatBaseUrl").value = p.baseUrl;
+  $("compatModel").value = p.model;
+  showCompatHelp();
+});
+
+// DeepSeek y OpenRouter vienen permitidos en el manifest; para otra dirección hay que pedir permiso.
+async function ensureHostPermission(baseUrl) {
+  let origin;
+  try {
+    origin = new URL(baseUrl).origin + "/*";
+  } catch {
+    return false;
+  }
+  if (await chrome.permissions.contains({ origins: [origin] })) return true;
+  return chrome.permissions.request({ origins: [origin] });
+}
+
 async function load() {
   const stored = await chrome.storage.local.get(FIELDS);
   const settings = { ...DEFAULT_SETTINGS, ...stored };
@@ -37,15 +70,27 @@ async function load() {
     else $(f).value = settings[f];
   }
   showProvider();
+  showCompatHelp();
 }
 
 $("save").addEventListener("click", async () => {
-  await chrome.storage.local.set(readForm());
+  const form = readForm();
+  if (form.provider === "compat" && !(await ensureHostPermission(form.compatBaseUrl))) {
+    return setStatus("Sin permiso para conectarse a esa URL: no se guardó.", true);
+  }
+  await chrome.storage.local.set(form);
   setStatus("Guardado.");
 });
 
 $("test").addEventListener("click", async () => {
   const f = readForm();
+  if (f.provider === "compat") {
+    if (!f.compatKey) return setStatus("Pegá la API key primero.", true);
+    if (!(await ensureHostPermission(f.compatBaseUrl))) return setStatus("Sin permiso para conectarse a esa URL.", true);
+    setStatus("Probando…");
+    const res = await chrome.runtime.sendMessage({ type: "test", provider: "compat", apiKey: f.compatKey, model: f.compatModel, baseUrl: f.compatBaseUrl, preset: f.compatPreset });
+    return setStatus(res.ok ? `Conexión OK (${res.model}).` : res.error, !res.ok);
+  }
   const gemini = f.provider === "gemini";
   const apiKey = gemini ? f.geminiKey : f.apiKey;
   if (!apiKey) return setStatus("Pegá la API key primero.", true);

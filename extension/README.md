@@ -1,6 +1,6 @@
 # LinkedIn Commenter
 
-Extensión de Chrome que hace tu ronda de comentarios en LinkedIn con Claude o con Gemini.
+Extensión de Chrome que hace tu ronda de comentarios en LinkedIn con Claude, Gemini, DeepSeek u otra IA compatible con OpenAI.
 
 Es parte de [linkedin-agent-skill-sp](https://github.com/guzzipa/linkedin-agent-skill-sp): las skills de LinkedIn en español para Claude. Las skills te ayudan con todo LinkedIn desde el chat (posts, perfil, plan semanal, DMs); esta extensión se ocupa solo de los comentarios, adentro de LinkedIn, y usa el mismo humanizador y las mismas reglas de `/li-comment`.
 
@@ -23,14 +23,16 @@ Necesitás:
 1. **Google Chrome** (o Brave, Edge, Arc u otro navegador basado en Chromium).
 2. **Una API key de alguna de estas dos IA:**
 
-| | Claude (Anthropic) | Gemini (Google) |
-| --- | --- | --- |
-| Dónde se saca | [console.anthropic.com](https://console.anthropic.com) → **API Keys** | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
-| Costo | Se paga por uso. Con Opus 5.5, cada ronda de hasta 8 posts sale entre 5 y 10 centavos de dólar; con Sonnet 5.5, la mitad. Cargá unos USD 5 para empezar. | **Tiene nivel gratuito**, con límites por minuto y por día. Si los pasás, hay nivel pago. |
-| Calidad de los comentarios | La mejor | Buena |
-| Privacidad | Anthropic no usa lo que mandás por la API para entrenar | **En el nivel gratuito, Google usa lo que le mandás para mejorar sus productos.** En el nivel pago, no. |
+| | Claude (Anthropic) | Gemini (Google) | DeepSeek | OpenRouter |
+| --- | --- | --- | --- | --- |
+| Dónde se saca | [console.anthropic.com](https://console.anthropic.com) → **API Keys** | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | [platform.deepseek.com](https://platform.deepseek.com/api_keys) | [openrouter.ai/keys](https://openrouter.ai/keys) |
+| Costo | Por uso: entre 5 y 10 centavos de dólar por ronda con Opus 5.5, la mitad con Sonnet 5.5 | **Nivel gratuito**, con límites por minuto y por día | Por uso y muy barato: unas 20 veces menos que Claude | **Modelos `:free` gratis**, con límites por día |
+| Calidad de los comentarios | La mejor | Buena | Buena | Depende del modelo que elijas |
+| Privacidad | Anthropic no usa lo que mandás por la API para entrenar | **En el nivel gratuito, Google lo usa para mejorar sus productos** | **Procesa los datos en China** | Depende del proveedor de cada modelo |
 
 La API de Anthropic va aparte de la suscripción a Claude.ai: tener Pro o Max no alcanza.
+
+DeepSeek y OpenRouter están en la opción **DeepSeek, OpenRouter u otra compatible con OpenAI**. Esa misma opción sirve para cualquier API con el formato de OpenAI (Groq, Mistral, un modelo local): pegás la URL base y el modelo. **Ojo con los modelos más chicos o gratis:** respetan menos la regla de no inventar experiencias tuyas. Leé cada comentario antes de publicarlo.
 
 ## Instalación
 
@@ -159,6 +161,7 @@ LinkedIn cambia el HTML de su sitio seguido. Si algo deja de andar, [abrí un is
 | `src/content.js` | Corre dentro de LinkedIn. Detecta los posts (por el botón "Comentar" y la barra de reacciones), lee autor y texto, arma las rondas, muestra los paneles (shadow DOM) y publica. |
 | `src/background.js` | Service worker. Llama a la IA elegida con salida JSON estructurada, humaniza cada comentario y actualiza el contador del ícono. |
 | `src/gemini.js` | Cliente de la API de Gemini (Interactions API con `response_format`), sin dependencias. |
+| `src/openai-compat.js` | Cliente para APIs compatibles con OpenAI (`/chat/completions` con `json_object`, y el esquema en el prompt). Presets de DeepSeek y OpenRouter. |
 | `src/prompt.js` | Prompts de **Sugerir** y de la ronda, esquemas de salida y valores por defecto de la configuración. |
 | `src/humanize.js` | Port a JS de [`skills/li-human/humanize.py`](../skills/li-human/humanize.py). Lee los léxicos de [`skills/li-human/lexicons/`](../skills/li-human/lexicons) (hay una sola copia para las skills y la extensión) y traduce sus regex de Python a JS. |
 | `src/options.*` | Página de configuración. |

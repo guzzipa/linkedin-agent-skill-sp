@@ -38,6 +38,7 @@
   <select id="provider">
     <option value="anthropic">Claude (Anthropic): mejor calidad, se paga por uso</option>
     <option value="gemini">Gemini (Google): tiene nivel gratuito</option>
+    <option value="compat">DeepSeek, OpenRouter u otra compatible con OpenAI: muy barata o gratis</option>
   </select>
 
   <div data-provider="anthropic">
@@ -50,6 +51,28 @@
     <label for="geminiKey">API key de Gemini</label>
     <p class="help">Sacala gratis de <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. <strong>Ojo:</strong> en el nivel gratuito Google usa lo que le mandás (el texto de los posts de tu feed y tu perfil) para mejorar sus productos. En el nivel pago, no.</p>
     <input id="geminiKey" type="password" autocomplete="off" placeholder="AIza...">
+  </div>
+
+  <div data-provider="compat">
+    <label for="compatPreset">Servicio</label>
+    <select id="compatPreset">
+      <option value="deepseek">DeepSeek: muy barato (centavos por mes)</option>
+      <option value="openrouter">OpenRouter: tiene modelos gratis, con límites por día</option>
+      <option value="custom">Otro compatible con OpenAI (Groq, Mistral, un modelo local...)</option>
+    </select>
+    <p class="help" id="compatHelp"></p>
+    <label for="compatKey">API key</label>
+    <input id="compatKey" type="password" autocomplete="off" placeholder="sk-...">
+    <div class="grid">
+      <div>
+        <label for="compatBaseUrl">URL base de la API</label>
+        <input id="compatBaseUrl" type="url" placeholder="https://api.ejemplo.com/v1">
+      </div>
+      <div>
+        <label for="compatModel">Modelo</label>
+        <input id="compatModel" type="text" placeholder="nombre-del-modelo">
+      </div>
+    </div>
   </div>
 
   <div class="grid">

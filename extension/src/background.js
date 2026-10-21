@@ -6,6 +6,9 @@ import {
 } from "./prompt.js";
 import { humanize } from "./humanize.js";
 import { GEMINI_MODELS, GeminiError, callGemini } from "./gemini.js";
+import { COMPAT_PRESETS, CompatError, callCompat } from "./openai-compat.js";
+
+const compatLabel = (s) => COMPAT_PRESETS[s.compatPreset]?.label === "Otro" ? "la API" : COMPAT_PRESETS[s.compatPreset]?.label || "la API";
 
 async function getSettings() {
   const stored = await chrome.storage.local.get(Object.keys(DEFAULT_SETTINGS));
@@ -52,7 +55,7 @@ async function learn({ force = false } = {}) {
 }
 
 function keyFor(settings) {
-  const key = settings.provider === "gemini" ? settings.geminiKey : settings.apiKey;
+  const key = { gemini: settings.geminiKey, compat: settings.compatKey }[settings.provider] ?? settings.apiKey;
   if (!key) throw new Error("Falta la API key. Abrí la configuración de la extensión.");
   return key;
 }
@@ -62,6 +65,9 @@ async function callJson(settings, { system, user, schema }) {
   const apiKey = keyFor(settings);
   if (settings.provider === "gemini") {
     return callGemini({ apiKey, model: settings.geminiModel, system, user, schema });
+  }
+  if (settings.provider === "compat") {
+    return callCompat({ apiKey, baseUrl: settings.compatBaseUrl, model: settings.compatModel, system, user, schema, label: compatLabel(settings) });
   }
   const response = await makeClient(apiKey).beta.messages.create({
     ...requestParams(settings.model, schema),
@@ -143,7 +149,18 @@ function setBadge({ count }) {
   return Promise.resolve({});
 }
 
-async function testConnection({ provider, apiKey, model }) {
+async function testConnection({ provider, apiKey, model, baseUrl, preset }) {
+  if (provider === "compat") {
+    const res = await callCompat({
+      apiKey, baseUrl, model,
+      system: "Respondés en json.",
+      user: "Respondé {\"ok\": true}",
+      schema: { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"] },
+      maxTokens: 512,
+      label: compatLabel({ compatPreset: preset }),
+    });
+    return { model: res.model };
+  }
   if (provider === "gemini") {
     const res = await callGemini({
       apiKey,
@@ -166,7 +183,7 @@ async function testConnection({ provider, apiKey, model }) {
 }
 
 function describeError(err) {
-  if (err instanceof GeminiError) return err.message;
+  if (err instanceof GeminiError || err instanceof CompatError) return err.message;
   if (err instanceof Anthropic.AuthenticationError) return "API key de Anthropic inválida.";
   if (err instanceof Anthropic.PermissionDeniedError) return "La API key no tiene permiso para este modelo.";
   if (err instanceof Anthropic.RateLimitError) return "Límite de uso alcanzado. Probá en un rato.";
