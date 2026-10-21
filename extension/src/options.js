@@ -37,7 +37,9 @@ const COMPAT_HELP = {
 };
 
 function showCompatHelp() {
-  $("compatHelp").innerHTML = COMPAT_HELP[$("compatPreset").value] || "";
+  $("compatHelp").innerHTML =
+    (COMPAT_HELP[$("compatPreset").value] || "") +
+    " Los modelos más chicos o gratis respetan menos la regla de no inventar experiencias tuyas: leé cada comentario antes de publicarlo.";
 }
 
 // Al cambiar de servicio, completar URL y modelo con los de ese servicio.
