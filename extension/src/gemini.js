@@ -46,7 +46,7 @@ function friendly(status, body) {
       ? `Llegaste al límite de uso de Gemini (nivel gratuito). Se libera en ${humanWait(wait)}.`
       : "Llegaste al límite de uso de Gemini (el nivel gratuito tiene límites por minuto y por día). Reintento solo en un rato.";
   }
-  if (status >= 500) return "La API de Gemini está con problemas. Reintento solo en un rato.";
+  if (status >= 500) return `La API de Gemini está con problemas (${status}${msg ? `: ${msg.slice(0, 110)}` : ""}). Reintento solo en un rato.`;
   return `Error de la API de Gemini (${status}): ${msg || "sin detalle"}`;
 }
 
@@ -60,8 +60,25 @@ function outputText(body) {
     .join("");
 }
 
+// Las sobrecargas de Google (500, 502, 503, 504) suelen durar segundos: se reintenta un par de
+// veces con espera creciente antes de rendirse. Los tests ponen __LIC_NO_RETRY_DELAY__ para no esperar.
+const RETRY_DELAYS = [1200, 3000];
+const wait = (ms) => new Promise((r) => setTimeout(r, globalThis.__LIC_NO_RETRY_DELAY__ ? 0 : ms));
+
 // Devuelve { data, model }: el JSON que respondió el modelo, ya parseado.
-export async function callGemini({ apiKey, model, system, user, schema, maxTokens = 16000 }) {
+export async function callGemini(args) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await callGeminiOnce(args);
+    } catch (e) {
+      const transient = e instanceof GeminiError && [500, 502, 503, 504].includes(e.status);
+      if (!transient || attempt >= RETRY_DELAYS.length) throw e;
+      await wait(RETRY_DELAYS[attempt]);
+    }
+  }
+}
+
+async function callGeminiOnce({ apiKey, model, system, user, schema, maxTokens = 16000 }) {
   let res;
   try {
     res = await fetch(ENDPOINT, {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Commenter",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Hace tu ronda de comentarios en LinkedIn con Claude, Gemini, DeepSeek u otra IA. Elige los posts, escribe los comentarios y vos publicás con un clic.",
   "permissions": [
     "storage"

@@ -42,9 +42,11 @@ function friendly(status, body, label) {
   if (status === 401) return `API key de ${label} inválida.`;
   if (status === 402 || /insufficient balance|credit/i.test(msg)) return `Tu cuenta de ${label} no tiene saldo.`;
   if (status === 403) return `La API key de ${label} no tiene permiso para ese modelo.`;
-  if (status === 404) return `${label} no encontró el modelo o la URL. Revisá el modelo y la URL base.`;
+  if (status === 404 || (status === 400 && /not a valid model|model.*(not found|does not exist)|no endpoints found/i.test(msg))) {
+    return `${label} no encontró ese modelo (puede que ya no exista: los gratis cambian seguido). Elegí otro de la lista.${msg ? ` Dice: ${msg.slice(0, 90)}` : ""}`;
+  }
   if (status === 429) return `Llegaste al límite de uso de ${label}${/free/i.test(msg) ? " (los modelos gratis tienen límites por minuto y por día)" : ""}. Reintento solo en un rato.`;
-  if (status >= 500) return `${label} está con problemas. Reintento solo en un rato.`;
+  if (status >= 500) return `${label} está con problemas (${status}${msg ? `: ${msg.slice(0, 110)}` : ""}). Reintento solo en un rato.`;
   return `Error de ${label} (${status}): ${msg || "sin detalle"}`;
 }
 
@@ -65,13 +67,19 @@ function parseJson(text) {
 }
 
 // Devuelve { data, model }.
-export async function callCompat({ apiKey, baseUrl, model, system, user, schema, maxTokens = 8000, label = "la API" }) {
+// Los modelos gratis que razonan pueden tardar 1 o 2 minutos; más que eso suele ser una respuesta colgada.
+export const COMPAT_TIMEOUT_MS = 170 * 1000;
+
+export async function callCompat({ apiKey, baseUrl, model, system, user, schema, maxTokens = 8000, label = "la API", timeoutMs = COMPAT_TIMEOUT_MS }) {
   if (!baseUrl) throw new CompatError("Falta la URL base de la API.", 0);
   if (!model) throw new CompatError("Falta el nombre del modelo.", 0);
   let res;
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), timeoutMs);
   try {
     res = await fetch(`${baseUrl.replace(/\/+$/, "")}/chat/completions`, {
       method: "POST",
+      signal: abort.signal,
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
         model,
@@ -83,9 +91,12 @@ export async function callCompat({ apiKey, baseUrl, model, system, user, schema,
         ...(schema && { response_format: { type: "json_object" } }),
       }),
     });
-  } catch {
+  } catch (e) {
+    clearTimeout(timer);
+    if (abort.signal.aborted) throw new CompatError(`${label} tardó más de ${Math.round(timeoutMs / 1000)} segundos en responder.`, 0);
     throw new CompatError(`No pude conectar con ${label}. Revisá la URL base.`, 0);
   }
+  clearTimeout(timer);
   const body = await res.json().catch(() => null);
   if (!res.ok) throw new CompatError(friendly(res.status, body, label), res.status, res.status === 429 ? retryAfterHeader(res) : 0);
 

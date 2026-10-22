@@ -21,7 +21,7 @@ export function classify(err) {
   if (status === 401 || status === 403 || /inválida|no tiene permiso/i.test(msg)) {
     return { kind: "key inválida", cooldown: 60 * MIN };
   }
-  if (status >= 500 || status === 0) return { kind: "caído", cooldown: 5 * MIN };
+  if (status >= 500 || status === 0) return { kind: "caído", cooldown: 2 * MIN };
   return { kind: "error", cooldown: 0 };
 }
 

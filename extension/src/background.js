@@ -75,9 +75,11 @@ async function callGeminiSmart(settings, req, pauses, now = Date.now()) {
       try {
         return await callGemini({ apiKey, model: preferred, ...req });
       } catch (e) {
-        if (e.status !== 429) throw e;
-        pauses[pauseKey] = now + pauseFor(e.retryAfterMs);
-        why = "llegó a su límite";
+        // 429: se agotó el cupo (la API dice cuándo se libera). 5xx: Google está saturado y
+        // suele durar minutos. En los dos casos, Flash-Lite suele andar.
+        if (e.status !== 429 && !(e.status >= 500)) throw e;
+        pauses[pauseKey] = now + (e.status === 429 ? pauseFor(e.retryAfterMs) : 2 * 60 * 1000);
+        why = e.status === 429 ? "llegó a su límite" : "está saturado";
       }
     }
     const res = await callGemini({ apiKey, model: GEMINI_LITE, ...req });
@@ -156,18 +158,51 @@ function readJson(response) {
 }
 
 // Pasa cada borrador por el humanizador: arregla lo seguro y devuelve lo que hay que mirar.
-// Frases que cuentan algo que el usuario hizo o vivió. Los modelos chicos a veces las
-// inventan aunque el prompt lo prohíba, así que se marcan para que el usuario las confirme.
-const EXPERIENCE_RE =
-  /\b(nos pas[óo]|me pas[óo]|(lo |la |los |las )?(resolvimos|implementamos|lanzamos|armamos|hicimos|construimos|logramos|probamos|medimos|migramos|vimos)|en mi experiencia|cuando (estaba|trabajaba|lider[ée]) en|we (built|did|launched|solved|saw|tried|shipped|migrated)|in my experience|at my (last|previous) (company|job))\b/i;
+// Frases que cuentan algo que el usuario hizo o vivió ("en Ualá aprendimos…", "we built…").
+// Los modelos chicos las inventan aunque el prompt lo prohíba. Se marca la frase solo si su
+// contenido no tiene respaldo en el perfil del usuario: si habla de lo que el perfil dice
+// (GenAI con Gemini en soporte), no molesta.
+const CLAIM_RE =
+  /\b(nos pas[óo]|me pas[óo]|en mi experiencia|in my experience|(lo |la |los |las )?(resolvimos|implementamos|desplegamos|lanzamos|armamos|hicimos|construimos|logramos|probamos|medimos|migramos|vimos|aprendimos|descubrimos|notamos|encontramos|vivimos|enfrentamos|tuvimos|creamos|reemplazamos|redujimos|aumentamos|escalamos|cambiamos)|(desplegu|constru|arm|lider|resolv|implement|lanc|logr|cre|reduj|aument|escal)[eéí]|cuando (estaba|trabajaba|lider[ée]) en|we (built|did|launched|solved|saw|tried|shipped|migrated|learned|found|noticed|discovered|had|faced|ran|used|created|replaced|reduced|scaled|deployed|implemented)|i (built|led|saw|found|learned|ran|launched|deployed)|at my (last|previous) (company|job))\b/i;
 
-function clean(text) {
+const STOP = new Set("para como pero porque cuando donde sobre entre hasta desde esta este esto esos esas solo cada tiene tienen puede hace hacer with that this from have been were their there which about into than then what when your more only also".split(" "));
+const stem = (w) => w.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 5);
+const wordsOf = (t) => (t.match(/[A-Za-zÁÉÍÓÚáéíóúñÑ]{5,}/g) || []).filter((w) => !STOP.has(w.toLowerCase())).map(stem);
+
+// Las frases del comentario que cuentan una experiencia sin respaldo en `facts` (el perfil).
+function unsupportedClaims(text, facts) {
+  const known = new Set(wordsOf(facts));
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => CLAIM_RE.test(sentence))
+    .filter((sentence) => new Set(wordsOf(sentence).filter((w) => known.has(w))).size < 3);
+}
+
+// Cifras que aparecen en el comentario pero no en lo que el modelo tenía a mano (tu perfil,
+// el post, tus ejemplos). Los modelos chicos las inventan ("el 70% del esfuerzo").
+// Se ignoran los años y los números de una cifra.
+const digits = (s) => s.replace(/[.,%\s]/g, "");
+function unverifiedNumbers(text, known) {
+  const knownSet = new Set((known.match(/\d[\d.,]*/g) || []).map(digits));
+  return [...new Set(text.match(/\d[\d.,]*%?/g) || [])]
+    .filter((n) => digits(n).length >= 2 && !/^(19|20)\d\d$/.test(digits(n)) && !knownSet.has(digits(n)))
+    .map((n) => n.replace(/[.,]$/, ""));
+}
+
+function clean(text, known = "", facts = "") {
   const h = humanize(text);
   const flags = h.flags.map((f) => ({ name: f.name, fix: f.fix }));
-  const claim = h.text.match(EXPERIENCE_RE);
-  if (claim) {
+  const invented = known ? unverifiedNumbers(h.text, known) : [];
+  if (invented.length) {
     flags.unshift({
-      name: `Cuenta una experiencia tuya ("${claim[0]}"): confirmá que sea real`,
+      name: `Cita ${invented.length > 1 ? "cifras" : "una cifra"} que no está en tu perfil ni en el post (${invented.join(", ")}): confirmá que sea real`,
+      fix: "Los modelos a veces inventan números. Si no es un dato tuyo, sacalo.",
+    });
+  }
+  const claims = facts ? unsupportedClaims(h.text, facts) : [];
+  if (claims.length) {
+    flags.unshift({
+      name: `Cuenta una experiencia tuya que no está en tu perfil ("${claims[0].slice(0, 70).trim()}…"): confirmá que sea real`,
       fix: "Los modelos a veces inventan anécdotas. Si no te pasó, cambiala por una opinión.",
     });
   }
@@ -184,7 +219,7 @@ async function generate({ author, post, hint }) {
     schema: OUTPUT_SCHEMA,
   });
   return {
-    comments: data.comments.slice(0, 3).map((c) => ({ ...c, ...clean(c.text) })),
+    comments: data.comments.slice(0, 3).map((c) => ({ ...c, ...clean(c.text, `${settings.persona} ${settings.examples} ${post} ${hint || ""}`, `${settings.persona} ${settings.examples}`) })),
     model,
     note,
   };
@@ -204,7 +239,9 @@ async function round({ posts }) {
   const known = new Set(posts.map((p) => p.id));
   const picks = data.posts
     .filter((p) => known.has(p.id))
-    .map((p) => (p.comentar && p.comentario.trim() ? { ...p, ...clean(p.comentario) } : { ...p, text: "", flags: [] }));
+    .map((p) => (p.comentar && p.comentario.trim()
+      ? { ...p, ...clean(p.comentario, `${settings.persona} ${settings.examples} ${posts.find((x) => x.id === p.id)?.text || ""}`, `${settings.persona} ${settings.examples}`) }
+      : { ...p, text: "", flags: [] }));
   return { picks, model, note };
 }
 
@@ -232,10 +269,12 @@ async function testOne({ provider, apiKey, model, baseUrl, preset }) {
     try {
       return { model: (await ask(preferred)).model };
     } catch (e) {
-      if (e.status !== 429 || preferred === GEMINI_LITE) throw e;
+      if ((e.status !== 429 && !(e.status >= 500)) || preferred === GEMINI_LITE) throw e;
       const res = await ask(GEMINI_LITE);
-      const wait = e.retryAfterMs ? `, se libera en ${humanWait(e.retryAfterMs)}` : "";
-      return { model: res.model, note: `3.8 Flash llegó a su límite${wait}; mientras tanto uso Flash-Lite` };
+      const why = e.status === 429
+        ? `llegó a su límite${e.retryAfterMs ? `, se libera en ${humanWait(e.retryAfterMs)}` : ""}`
+        : "está saturado en este momento (error " + e.status + ")";
+      return { model: res.model, note: `3.8 Flash ${why}; mientras tanto uso Flash-Lite` };
     }
   }
   const response = await makeClient(apiKey).beta.messages.create({
