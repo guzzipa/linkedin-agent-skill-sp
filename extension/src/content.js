@@ -539,7 +539,7 @@
       const post = byId[p.id];
       fresh.queue.push({
         id: p.id, author: post.author, snippet: post.text.slice(0, 220), url: post.url,
-        tipo: p.tipo, motivo: p.motivo, puntaje: p.puntaje, text: p.text, flags: p.flags,
+        tipo: p.tipo, motivo: p.motivo, puntaje: p.puntaje, text: p.text, flags: p.flags, translated: !!p.translated,
         status: "pendiente", at: Date.now(),
       });
     }
@@ -754,7 +754,11 @@
     return el("div", { className: "card" }, [
       el("div", { className: "who", textContent: item.author || "Post" }),
       el("div", { className: "snip", textContent: item.snippet }),
-      el("div", { className: "why" }, [el("span", { className: "chip", textContent: item.tipo.replace(/_/g, " ") }), item.motivo]),
+      el("div", { className: "why" }, [
+        el("span", { className: "chip", textContent: item.tipo.replace(/_/g, " ") }),
+        ...(item.translated ? [el("span", { className: "chip", textContent: "traducido al idioma del post", title: "El modelo lo escribió en otro idioma y la extensión lo tradujo" })] : []),
+        item.motivo,
+      ]),
       area,
       ...flagList(item.flags || []),
       msg,

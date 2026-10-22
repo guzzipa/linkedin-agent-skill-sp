@@ -130,8 +130,9 @@ test("marca las anécdotas que no están en el perfil, y deja pasar las que sí"
   const mk = (c) => JSON.stringify({ posts: [{ id: "p1", comentar: true, puntaje: 8, motivo: "m", tipo: "comprobante", comentario: c }] });
   let reply;
   const bg = boot({ ...BASE, persona: "CDAO en Ualá. Desplegué GenAI con Gemini en soporte al cliente.", provider: "compat" }, () => compatOk(reply));
+  const EN_POST = [{ id: "p1", author: "A", comments: 2, text: "The board approves the budget, the data team builds a model, and nobody owns the business metric. Ownership beats architecture." }];
   reply = mk("At Ualá we learned that naming a business owner is not enough: they need a seat in the credit committee.");
-  let res = await bg.send({ type: "round", posts: POSTS });
+  let res = await bg.send({ type: "round", posts: EN_POST });
   assert.match(res.picks[0].flags[0].name, /Cuenta una experiencia tuya que no está en tu perfil \("At Ualá we learned/);
   reply = mk("En Ualá desplegamos GenAI con Gemini en soporte al cliente y la base de conocimiento fue lo difícil.");
   res = await bg.send({ type: "round", posts: POSTS });
@@ -213,4 +214,88 @@ test("marca las cifras que no están en el perfil ni en el post (las que inventa
   text = "Desde 2023 lo vemos en 3 de cada 4 equipos.";
   res = await bg.send({ type: "round", posts: post });
   assert.equal(res.picks[0].flags.some((f) => /cifra/.test(f.name)), false, "los años y los números de una cifra no se marcan");
+});
+
+const EN_POSTS = [{ id: "p1", author: "Tom, Partner at a VC fund", comments: 3, text: "Most AI strategies fail the same way: the board approves a budget, the data team builds a model, and nobody owns the business metric it was supposed to move. Ownership beats architecture." }];
+const ES_POSTS = [{ id: "p1", author: "Ana, CEO", comments: 3, text: "Después de dieciocho meses con un equipo de datos centralizado, lo partimos en squads por dominio. La velocidad subió, pero cada squad define cliente activo a su manera." }];
+const roundWith = (c) => JSON.stringify({ posts: [{ id: "p1", comentar: true, puntaje: 8, motivo: "m", tipo: "dato", comentario: c }] });
+
+test("el idioma de cada post viaja en el pedido, y la regla gana sobre el perfil en castellano", async () => {
+  const first = [];
+  const bg = boot({ ...BASE, provider: "compat" }, (url, body) => {
+    first.push(body.messages);
+    return compatOk(roundWith(first.length === 1
+      ? "Ownership beats architecture, and the owner has to sit where the metric is reviewed."
+      : "Cada squad define cliente activo a su manera, y eso rompe cualquier métrica compartida."));
+  });
+  await bg.send({ type: "round", posts: EN_POSTS });
+  assert.match(first[0][1].content, /<idioma_del_comentario>inglés<\/idioma_del_comentario>/);
+  assert.match(first[0][0].content, /el comentario va en el idioma que dice <idioma_del_comentario>/);
+  await bg.send({ type: "round", posts: ES_POSTS });
+  assert.match(first[1][1].content, /<idioma_del_comentario>español<\/idioma_del_comentario>/);
+  assert.equal(first.length, 2, "las dos respuestas ya estaban en el idioma correcto: sin traducción");
+});
+
+test("post en inglés con comentario en castellano: se traduce solo, con una segunda llamada", async () => {
+  const sent = [];
+  const bg = boot({ ...BASE, provider: "compat", tone: "Voseo rioplatense." }, (url, body) => {
+    sent.push(body.messages[1].content);
+    return sent.length === 1
+      ? compatOk(roundWith("El dueño de la métrica tiene que sentarse donde se revisa, si no el modelo se muere después del lanzamiento."))
+      : compatOk(JSON.stringify({ textos: ["The metric's owner has to sit where it is reviewed, or the model dies after launch."] }));
+  });
+  const res = await bg.send({ type: "round", posts: EN_POSTS });
+  assert.equal(res.ok, true, res.error);
+  assert.match(res.picks[0].text, /^The metric's owner has to sit where it is reviewed/);
+  assert.equal(res.picks[0].translated, true);
+  assert.equal(res.picks[0].flags.some((f) => /idioma equivocado/.test(f.name)), false);
+  assert.equal(sent.length, 2);
+  assert.match(sent[1], /<idioma>inglés<\/idioma>/);
+});
+
+test("si ya está en el idioma correcto no hay segunda llamada", async () => {
+  let calls = 0;
+  const bg = boot({ ...BASE, provider: "compat" }, () => (calls++, compatOk(roundWith("Ownership beats architecture, and the owner has to sit where the metric is reviewed."))));
+  const res = await bg.send({ type: "round", posts: EN_POSTS });
+  assert.equal(calls, 1);
+  assert.equal(res.picks[0].translated, false);
+});
+
+test("si la traducción falla, el comentario queda con una advertencia en vez de perderse", async () => {
+  let n = 0;
+  const bg = boot({ ...BASE, provider: "compat" }, () => (++n === 1 ? compatOk(roundWith("El dueño de la métrica tiene que sentarse donde se revisa, si no el modelo se muere.")) : json(500, { error: { message: "boom" } })));
+  const res = await bg.send({ type: "round", posts: EN_POSTS });
+  assert.equal(res.ok, true);
+  assert.match(res.picks[0].text, /^El dueño de la métrica/);
+  assert.match(res.picks[0].flags[0].name, /idioma equivocado \(el post pide inglés\)/);
+});
+
+test("si el usuario fija el idioma, manda sobre el del post", async () => {
+  const sent = [];
+  const bg = boot({ ...BASE, provider: "compat", language: "es" }, (url, body) => (sent.push(body.messages[1].content), compatOk(roundWith("El dueño de la métrica tiene que sentarse donde se revisa el resultado."))));
+  const res = await bg.send({ type: "round", posts: EN_POSTS });
+  assert.match(sent[0], /<idioma_del_comentario>español/);
+  assert.equal(sent.length, 1, "ya está en español: no se traduce");
+  assert.equal(res.picks[0].translated, false);
+});
+
+test("✨ Sugerir: los 3 comentarios en castellano de un post en inglés se traducen en una sola llamada", async () => {
+  const sent = [];
+  const gen = JSON.stringify({ comments: [
+    { angle: "aporte", text: "El dueño de la métrica tiene que estar donde se revisa el resultado." },
+    { angle: "pregunta", text: "¿Quién es el dueño de la métrica cuando el modelo falla en producción?" },
+    { angle: "experiencia", text: "Los modelos que se quedaron sin dueño de negocio murieron después del lanzamiento." },
+  ] });
+  const bg = boot({ ...BASE, provider: "compat" }, (url, body) => {
+    sent.push(body);
+    return sent.length === 1 ? compatOk(gen) : compatOk(JSON.stringify({ textos: [
+      "The metric's owner has to sit where results are reviewed.",
+      "Who owns the metric when the model fails in production?",
+      "Models left without a business owner died after launch.",
+    ] }));
+  });
+  const res = await bg.send({ type: "generate", author: "Tom", post: EN_POSTS[0].text });
+  assert.equal(res.ok, true, res.error);
+  assert.equal(sent.length, 2, "una traducción para los tres, no tres");
+  assert.equal(JSON.stringify(res.comments.map((c) => c.text.split(" ")[0])), JSON.stringify(["The", "Who", "Models"]));
 });

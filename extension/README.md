@@ -36,6 +36,8 @@ La API de Anthropic va aparte de la suscripción a Claude.ai: tener Pro o Max no
 
 **Gemini gratis:** el nivel gratuito de Gemini 3.8 Flash permite unos 20 pedidos por día, y cada ronda o ✨ Sugerir es un pedido. Cuando se agota, o cuando Google está saturado (error 503, que reintenta dos veces antes), la extensión pasa sola a Gemini 3.5 Flash-Lite, que tiene mucho más cupo, sin cambiar de proveedor, y vuelve a 3.8 Flash cuando se libera.
 
+**Idioma de los comentarios:** el comentario sale en el idioma de cada post (o en el que fijes en la configuración), aunque tu perfil y tu tono estén en castellano. La extensión detecta el idioma del post y se lo pide al modelo; si igual contesta en otro idioma, lo traduce sola antes de mostrártelo y lo marca con *traducido al idioma del post*. Si la traducción falla, el comentario queda con un ⚠ en vez de perderse. En una prueba con Gemini Flash-Lite y un perfil en castellano, 11 de 12 comentarios a posts en inglés salían en castellano; con esto, 0 de 12.
+
 **Anécdotas y cifras inventadas:** los modelos más chicos o gratis a veces inventan cosas aunque el prompt lo prohíba. La tarjeta marca con ⚠ dos casos para que los confirmes antes de publicar:
 - una frase que cuenta algo que "hiciste" ("en Ualá aprendimos…", "we built…") y que no tiene respaldo en el campo **Quién sos**. Si habla de lo que tu perfil sí dice, no molesta;
 - una cifra que no está en tu perfil ni en el post ("el 70% del esfuerzo"). Los años y los números de una cifra no se marcan.

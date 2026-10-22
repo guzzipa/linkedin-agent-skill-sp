@@ -1,6 +1,6 @@
 {
   "name": "linkedin-commenter",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "private": true,
   "description": "Extensión de Chrome que hace tu ronda de comentarios en LinkedIn con Claude o Gemini: elige qué posts comentar, escribe los comentarios y los publicás con un clic",
   "type": "module",
