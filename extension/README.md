@@ -159,6 +159,7 @@ Leé cada comentario antes de publicarlo. Sale con tu nombre, y un comentario qu
 | "Could not resolve authentication method…" al probar la conexión | Chrome sigue usando la versión anterior del service worker. Abrí `chrome://extensions`, tocá **↻** en LinkedIn Commenter y volvé a abrir la configuración. Desde la v0.7.1 la configuración lo detecta y lo avisa con un cartel amarillo. |
 | "Gemini está con problemas (503…)" | Google está saturado. La extensión reintenta dos veces y después pasa a Gemini 3.5 Flash-Lite y a tus respaldos; no hace falta hacer nada. Suele durar minutos. |
 | "OpenRouter no encontró ese modelo" | Los modelos `:free` cambian seguido y el que tenías ya no existe. Tocá el campo **Modelo** en la configuración: la lista de modelos gratis de hoy se carga sola. |
+| "Extension context invalidated" en `chrome://extensions` → Errores | Tocaste **↻** con LinkedIn abierto: esa pestaña sigue con el script viejo, que perdió la conexión. Recargá LinkedIn (⌘R). Desde la v0.7.3 el script viejo lo detecta, se retira y muestra un aviso amarillo en vez de llenar la consola de errores. |
 | "Falta la API key" | Abrí la configuración, pegá la key y tocá **Guardar**. |
 | "API key inválida" o error 401 | La key está mal copiada o la borraste en la consola del proveedor. |
 | "Tu cuenta de la API de Anthropic no tiene saldo" | Cargá saldo en [console.anthropic.com](https://console.anthropic.com) → **Billing**. La ronda se reintenta sola cada dos minutos. |

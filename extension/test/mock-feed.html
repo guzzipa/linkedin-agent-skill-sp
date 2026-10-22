@@ -23,7 +23,7 @@
   };
   window.__data = __data;
   window.__msgs = [];
-  window.chrome = { storage: { local: storage, onChanged: { addListener: (fn) => __listeners.push(fn) } }, runtime: { sendMessage: async (msg) => {
+  window.chrome = { storage: { local: storage, onChanged: { addListener: (fn) => __listeners.push(fn) } }, runtime: { id: "mock-extension-id", sendMessage: async (msg) => {
     window.__msgs.push(msg);
     if (msg.type === "badge" || msg.type === "openOptions") return { ok: true };
     await new Promise(r => setTimeout(r, 500));
