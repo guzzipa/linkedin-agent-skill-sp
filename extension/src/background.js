@@ -75,9 +75,11 @@ async function callGeminiSmart(settings, req, pauses, now = Date.now()) {
       try {
         return await callGemini({ apiKey, model: preferred, ...req });
       } catch (e) {
-        if (e.status !== 429) throw e;
-        pauses[pauseKey] = now + pauseFor(e.retryAfterMs);
-        why = "llegó a su límite";
+        // 429: se agotó el cupo (la API dice cuándo se libera). 5xx: Google está saturado y
+        // suele durar minutos. En los dos casos, Flash-Lite suele andar.
+        if (e.status !== 429 && !(e.status >= 500)) throw e;
+        pauses[pauseKey] = now + (e.status === 429 ? pauseFor(e.retryAfterMs) : 2 * 60 * 1000);
+        why = e.status === 429 ? "llegó a su límite" : "está saturado";
       }
     }
     const res = await callGemini({ apiKey, model: GEMINI_LITE, ...req });
@@ -232,10 +234,12 @@ async function testOne({ provider, apiKey, model, baseUrl, preset }) {
     try {
       return { model: (await ask(preferred)).model };
     } catch (e) {
-      if (e.status !== 429 || preferred === GEMINI_LITE) throw e;
+      if ((e.status !== 429 && !(e.status >= 500)) || preferred === GEMINI_LITE) throw e;
       const res = await ask(GEMINI_LITE);
-      const wait = e.retryAfterMs ? `, se libera en ${humanWait(e.retryAfterMs)}` : "";
-      return { model: res.model, note: `3.8 Flash llegó a su límite${wait}; mientras tanto uso Flash-Lite` };
+      const why = e.status === 429
+        ? `llegó a su límite${e.retryAfterMs ? `, se libera en ${humanWait(e.retryAfterMs)}` : ""}`
+        : "está saturado en este momento (error " + e.status + ")";
+      return { model: res.model, note: `3.8 Flash ${why}; mientras tanto uso Flash-Lite` };
     }
   }
   const response = await makeClient(apiKey).beta.messages.create({

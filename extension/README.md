@@ -34,7 +34,7 @@ La API de Anthropic va aparte de la suscripción a Claude.ai: tener Pro o Max no
 
 **Respaldo automático.** En la configuración podés elegir hasta dos IA de respaldo: *"Si se acaba, seguir con"* y *"Y si ese también se acaba"*. Si la principal se queda sin saldo, llega a su límite de uso, tiene la key mal o no responde, la ronda sigue con la siguiente, y el panel avisa con cuál salió. La que falló queda en pausa un rato para no gastar intentos: 6 horas si no tiene saldo, 1 hora si la key está mal, 15 minutos si llegó al límite y 5 minutos si no respondió. Por ejemplo: Claude como principal, Gemini gratis de respaldo y DeepSeek de último. Si la API avisa cuándo se libera el límite (como el diario de Gemini), la pausa dura eso. **Probar conexión** prueba la principal y los respaldos, y muestra el estado de cada una.
 
-**Gemini gratis:** el nivel gratuito de Gemini 3.8 Flash permite unos 20 pedidos por día, y cada ronda o ✨ Sugerir es un pedido. Cuando se agota, la extensión pasa sola a Gemini 3.5 Flash-Lite, que tiene mucho más cupo, sin cambiar de proveedor, y vuelve a 3.8 Flash cuando se libera.
+**Gemini gratis:** el nivel gratuito de Gemini 3.8 Flash permite unos 20 pedidos por día, y cada ronda o ✨ Sugerir es un pedido. Cuando se agota, o cuando Google está saturado (error 503, que reintenta dos veces antes), la extensión pasa sola a Gemini 3.5 Flash-Lite, que tiene mucho más cupo, sin cambiar de proveedor, y vuelve a 3.8 Flash cuando se libera.
 
 **Anécdotas inventadas:** si un comentario cuenta algo que "hiciste" ("lo resolvimos", "nos pasó", "en mi experiencia"), la tarjeta lo marca con ⚠ para que confirmes que es real. Los modelos más chicos a veces las inventan aunque el prompt lo prohíba.
 
@@ -151,6 +151,8 @@ Leé cada comentario antes de publicarlo. Sale con tu nombre, y un comentario qu
 | --- | --- |
 | No aparece el botón 💬 | Recargá LinkedIn. Fijate en `chrome://extensions` que la extensión esté activada y sin errores. |
 | "Could not resolve authentication method…" al probar la conexión | Chrome sigue usando la versión anterior del service worker. Abrí `chrome://extensions`, tocá **↻** en LinkedIn Commenter y volvé a abrir la configuración. Desde la v0.7.1 la configuración lo detecta y lo avisa con un cartel amarillo. |
+| "Gemini está con problemas (503…)" | Google está saturado. La extensión reintenta dos veces y después pasa a Gemini 3.5 Flash-Lite y a tus respaldos; no hace falta hacer nada. Suele durar minutos. |
+| "OpenRouter no encontró ese modelo" | Los modelos `:free` cambian seguido y el que tenías ya no existe. Tocá el campo **Modelo** en la configuración: la lista de modelos gratis de hoy se carga sola. |
 | "Falta la API key" | Abrí la configuración, pegá la key y tocá **Guardar**. |
 | "API key inválida" o error 401 | La key está mal copiada o la borraste en la consola del proveedor. |
 | "Tu cuenta de la API de Anthropic no tiene saldo" | Cargá saldo en [console.anthropic.com](https://console.anthropic.com) → **Billing**. La ronda se reintenta sola cada dos minutos. |

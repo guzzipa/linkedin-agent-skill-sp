@@ -42,9 +42,11 @@ function friendly(status, body, label) {
   if (status === 401) return `API key de ${label} inválida.`;
   if (status === 402 || /insufficient balance|credit/i.test(msg)) return `Tu cuenta de ${label} no tiene saldo.`;
   if (status === 403) return `La API key de ${label} no tiene permiso para ese modelo.`;
-  if (status === 404) return `${label} no encontró el modelo o la URL. Revisá el modelo y la URL base.`;
+  if (status === 404 || (status === 400 && /not a valid model|model.*(not found|does not exist)|no endpoints found/i.test(msg))) {
+    return `${label} no encontró ese modelo (puede que ya no exista: los gratis cambian seguido). Elegí otro de la lista.${msg ? ` Dice: ${msg.slice(0, 90)}` : ""}`;
+  }
   if (status === 429) return `Llegaste al límite de uso de ${label}${/free/i.test(msg) ? " (los modelos gratis tienen límites por minuto y por día)" : ""}. Reintento solo en un rato.`;
-  if (status >= 500) return `${label} está con problemas. Reintento solo en un rato.`;
+  if (status >= 500) return `${label} está con problemas (${status}${msg ? `: ${msg.slice(0, 110)}` : ""}). Reintento solo en un rato.`;
   return `Error de ${label} (${status}): ${msg || "sin detalle"}`;
 }
 

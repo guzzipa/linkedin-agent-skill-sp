@@ -51,6 +51,35 @@ const COMPAT_HELP = {
   custom: "Cualquier API compatible con OpenAI que tenga <code>/chat/completions</code>. Pegá la URL base (por ejemplo, <code>https://api.groq.com/openai/v1</code>) y el nombre exacto del modelo. Chrome te va a pedir permiso para conectarse a esa dirección.",
 };
 
+// OpenRouter publica la lista de modelos sin pedir key. Los gratis (:free) cambian seguido,
+// así que se leen en vivo en vez de dejar un nombre fijo que un día deja de existir.
+async function loadFreeModels() {
+  const list = $("compatModels");
+  list.replaceChildren();
+  if ($("compatPreset").value !== "openrouter") return;
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/models");
+    const models = (await res.json()).data || [];
+    const free = models.filter((m) => /:free$/.test(m.id)).sort((a, b) => (b.context_length || 0) - (a.context_length || 0));
+    for (const m of free) {
+      const opt = document.createElement("option");
+      opt.value = m.id;
+      opt.label = `${m.name || m.id}${m.context_length ? ` · ${Math.round(m.context_length / 1000)}k` : ""}`;
+      list.append(opt);
+    }
+    const typed = $("compatModel").value;
+    const note = free.length
+      ? ` Hoy hay ${free.length} modelos gratis: tocá el campo Modelo para ver la lista.`
+      : "";
+    $("compatHelp").innerHTML += note;
+    if (typed && !free.some((m) => m.id === typed)) {
+      $("compatHelp").innerHTML += ` <strong>Ojo:</strong> "${typed.replace(/[<&]/g, "")}" no está entre los gratis de hoy; puede que ya no exista.`;
+    }
+  } catch {
+    // Sin conexión a OpenRouter: se puede escribir el modelo a mano.
+  }
+}
+
 function showCompatHelp() {
   $("compatHelp").innerHTML =
     (COMPAT_HELP[$("compatPreset").value] || "") +
@@ -63,6 +92,7 @@ $("compatPreset").addEventListener("change", () => {
   $("compatBaseUrl").value = p.baseUrl;
   $("compatModel").value = p.model;
   showCompatHelp();
+  loadFreeModels();
 });
 
 // DeepSeek y OpenRouter vienen permitidos en el manifest; para otra dirección hay que pedir permiso.
@@ -88,6 +118,7 @@ async function load() {
   }
   showProvider();
   showCompatHelp();
+  loadFreeModels();
 }
 
 $("save").addEventListener("click", async () => {

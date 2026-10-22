@@ -18,6 +18,7 @@ const json = (status, body, headers = {}) =>
 
 // Respuestas reales de cada API, tomadas de las pruebas en vivo.
 const ANTHROPIC_NO_CREDIT = () => json(400, { type: "error", error: { type: "invalid_request_error", message: "Your credit balance is too low to access the Anthropic API." } });
+const GEMINI_OVERLOADED = () => json(503, { error: { message: "gemini-3.8-flash is currently experiencing high demand, spikes in demand are usually temporary. Please try again later.", code: "service_unavailable" } });
 const GEMINI_DAILY_LIMIT = () => json(429, { error: { code: 429, message: "Rate limit exceeded for model gemini-3.8-flash (limit: 20 requests per day on Free Tier). Please retry in 13h43m30s or upgrade your tier at https://ai.dev/rate-limit." } });
 const geminiOk = (model, text) => json(200, { status: "completed", model, steps: [{ type: "thought" }, { type: "model_output", content: [{ type: "text", text }] }] });
 const compatOk = (text) => json(200, { model: "deepseek/deepseek-chat:free", choices: [{ message: { content: text }, finish_reason: "stop" }] });
@@ -45,7 +46,7 @@ function boot(settings, router) {
   const web = { Response, Headers, Request, URL, URLSearchParams, FormData, Blob, File, AbortController, AbortSignal,
     ReadableStream, TextEncoder, TextDecoder, EventTarget, Event, crypto, structuredClone, queueMicrotask,
     setTimeout, clearTimeout, setInterval, clearInterval, console };
-  const ctx = vm.createContext({ ...web, chrome, fetch, navigator: { userAgent: "test" } });
+  const ctx = vm.createContext({ ...web, chrome, fetch, navigator: { userAgent: "test" }, __LIC_NO_RETRY_DELAY__: true });
   vm.runInContext(CODE, ctx);
   const send = (msg) => new Promise((resolve) => handler(msg, {}, resolve));
   return { send, store, calls };
@@ -149,4 +150,48 @@ test("un service worker VIEJO no conoce ping: no responde, y eso es lo que delat
   const handled = await Promise.race([bg.send({ type: "tipo-que-no-existe" }).then(() => (answered = true)), new Promise((r) => setTimeout(() => r("sin respuesta"), 50))]);
   assert.equal(handled, "sin respuesta");
   assert.equal(answered, false);
+});
+
+test("Gemini 3.8 Flash saturado (503) → Flash-Lite, sin cambiar de proveedor, con pausa corta", async () => {
+  const bg = boot({ ...BASE, provider: "gemini", geminiModel: "gemini-3.8-flash", fallback1: "compat" }, (url, body) =>
+    body.model === "gemini-3.8-flash" ? GEMINI_OVERLOADED() : geminiOk(body.model, ROUND));
+  const res = await bg.send({ type: "round", posts: POSTS });
+  assert.equal(res.ok, true, res.error);
+  assert.match(res.note, /Gemini Flash-Lite, porque Gemini 3.8 Flash está saturado/);
+  const pause = bg.store.lic_model_pauses["gemini:gemini-3.8-flash"];
+  assert.ok(pause > Date.now() && pause < Date.now() + 3 * 60e3, "pausa de 2 minutos, no de horas");
+  assert.equal(bg.calls.some((c) => c.host.includes("openrouter")), false, "no hace falta ir a otro proveedor");
+});
+
+test("Probar conexión con Gemini saturado usa Flash-Lite y lo explica", async () => {
+  const bg = boot({}, (url, body) => (body.model === "gemini-3.8-flash" ? GEMINI_OVERLOADED() : geminiOk(body.model, '{"ok":true}')));
+  const res = await bg.send({ type: "test", providers: [{ provider: "gemini", apiKey: "AQ.x", model: "gemini-3.8-flash" }] });
+  assert.equal(res.results[0].ok, true);
+  assert.match(res.results[0].note, /está saturado en este momento \(error 503\); mientras tanto uso Flash-Lite/);
+});
+
+test("los errores 5xx muestran qué dijo la API, y un modelo inexistente se explica", async () => {
+  let bg = boot({}, () => GEMINI_OVERLOADED());
+  let res = await bg.send({ type: "test", providers: [{ provider: "gemini", apiKey: "AQ.x", model: "gemini-3.5-flash-lite" }] });
+  assert.match(res.results[0].error, /está con problemas \(503: gemini-3.8-flash is currently experiencing high demand/);
+  bg = boot({}, () => json(400, { error: { message: "deepseek/deepseek-chat:free is not a valid model ID", code: 400 } }));
+  res = await bg.send({ type: "test", providers: [{ provider: "compat", apiKey: "sk-or-x", model: "deepseek/deepseek-chat:free", baseUrl: "https://openrouter.ai/api/v1", preset: "openrouter" }] });
+  assert.match(res.results[0].error, /no encontró ese modelo \(puede que ya no exista/);
+});
+
+test("un 503 pasajero de Gemini se reintenta y se recupera sin cambiar de modelo", async () => {
+  let n = 0;
+  const bg = boot({ ...BASE, provider: "gemini", geminiModel: "gemini-3.5-flash-lite" }, (url, body) => (++n === 1 ? GEMINI_OVERLOADED() : geminiOk(body.model, ROUND)));
+  const res = await bg.send({ type: "round", posts: POSTS });
+  assert.equal(res.ok, true, res.error);
+  assert.equal(res.note, "");
+  assert.deepEqual(bg.calls.map((c) => c.model), ["gemini-3.5-flash-lite", "gemini-3.5-flash-lite"]);
+});
+
+test("si el 503 no se va, se reintenta dos veces y recién ahí se baja de modelo", async () => {
+  const bg = boot({ ...BASE, provider: "gemini", geminiModel: "gemini-3.8-flash" }, (url, body) =>
+    body.model === "gemini-3.8-flash" ? GEMINI_OVERLOADED() : geminiOk(body.model, ROUND));
+  const res = await bg.send({ type: "round", posts: POSTS });
+  assert.equal(res.ok, true, res.error);
+  assert.deepEqual(bg.calls.map((c) => c.model), ["gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite"]);
 });

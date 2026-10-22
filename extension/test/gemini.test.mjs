@@ -5,6 +5,8 @@ import assert from "node:assert/strict";
 import { callGemini, GeminiError } from "../src/gemini.js";
 import { ROUND_SCHEMA } from "../src/prompt.js";
 
+globalThis.__LIC_NO_RETRY_DELAY__ = true; // sin esperas reales en los tests
+
 function mockFetch(status, body) {
   const calls = [];
   globalThis.fetch = async (url, init) => {
