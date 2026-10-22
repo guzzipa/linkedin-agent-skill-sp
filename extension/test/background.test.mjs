@@ -126,16 +126,19 @@ test("Probar conexión prueba todas y reporta cada una", async () => {
   assert.equal(compat.ok, true);
 });
 
-test("marca los comentarios que cuentan una experiencia del usuario, para que la confirme", async () => {
-  const invented = JSON.stringify({ posts: [{ id: "p1", comentar: true, puntaje: 8, motivo: "m", tipo: "comprobante", comentario: "En Ualá lo resolvimos con una capa de features centralizada." }] });
-  const opinion = JSON.stringify({ posts: [{ id: "p1", comentar: true, puntaje: 8, motivo: "m", tipo: "dato", comentario: "La velocidad sin una definición común de cliente activo es deuda." }] });
-  let reply = invented;
-  const bg = boot({ ...BASE, provider: "compat" }, () => compatOk(reply));
+test("marca las anécdotas que no están en el perfil, y deja pasar las que sí", async () => {
+  const mk = (c) => JSON.stringify({ posts: [{ id: "p1", comentar: true, puntaje: 8, motivo: "m", tipo: "comprobante", comentario: c }] });
+  let reply;
+  const bg = boot({ ...BASE, persona: "CDAO en Ualá. Desplegué GenAI con Gemini en soporte al cliente.", provider: "compat" }, () => compatOk(reply));
+  reply = mk("At Ualá we learned that naming a business owner is not enough: they need a seat in the credit committee.");
   let res = await bg.send({ type: "round", posts: POSTS });
-  assert.match(res.picks[0].flags[0].name, /Cuenta una experiencia tuya \("lo resolvimos"\)/);
-  reply = opinion;
+  assert.match(res.picks[0].flags[0].name, /Cuenta una experiencia tuya que no está en tu perfil \("At Ualá we learned/);
+  reply = mk("En Ualá desplegamos GenAI con Gemini en soporte al cliente y la base de conocimiento fue lo difícil.");
   res = await bg.send({ type: "round", posts: POSTS });
-  assert.equal(res.picks[0].flags.some((f) => /experiencia tuya/.test(f.name)), false);
+  assert.equal(res.picks[0].flags.some((f) => /experiencia tuya/.test(f.name)), false, "está respaldado por el perfil");
+  reply = mk("La velocidad sin una definición común de cliente activo es deuda.");
+  res = await bg.send({ type: "round", posts: POSTS });
+  assert.equal(res.picks[0].flags.length, 0, "una opinión no se marca");
 });
 
 test("ping devuelve la versión del service worker (la configuración la usa para detectar una versión vieja)", async () => {
@@ -194,4 +197,20 @@ test("si el 503 no se va, se reintenta dos veces y recién ahí se baja de model
   const res = await bg.send({ type: "round", posts: POSTS });
   assert.equal(res.ok, true, res.error);
   assert.deepEqual(bg.calls.map((c) => c.model), ["gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite"]);
+});
+
+test("marca las cifras que no están en el perfil ni en el post (las que inventan los modelos chicos)", async () => {
+  const reply = (c) => JSON.stringify({ posts: [{ id: "p1", comentar: true, puntaje: 8, motivo: "m", tipo: "dato", comentario: c }] });
+  const post = [{ id: "p1", author: "A", comments: 2, text: "Resolvimos el 38% de los tickets sin intervención en 6 semanas. " + "x".repeat(60) }];
+  let text = "Con el 38% de automatización, el cuello de botella es el contenido.";
+  const bg = boot({ ...BASE, persona: "CDAO en Ualá. UalaScore con 20.000 variables.", provider: "compat" }, () => compatOk(reply(text)));
+  let res = await bg.send({ type: "round", posts: post });
+  assert.equal(res.picks[0].flags.some((f) => /cifra/.test(f.name)), false, "el 38% está en el post");
+  text = "Pasamos de 20.000 variables a un modelo que ahorró el 70% del esfuerzo.";
+  res = await bg.send({ type: "round", posts: post });
+  const flag = res.picks[0].flags.find((f) => /cifra/.test(f.name));
+  assert.match(flag.name, /una cifra .*\(70%\)/, "20.000 es del perfil, 70% no");
+  text = "Desde 2023 lo vemos en 3 de cada 4 equipos.";
+  res = await bg.send({ type: "round", posts: post });
+  assert.equal(res.picks[0].flags.some((f) => /cifra/.test(f.name)), false, "los años y los números de una cifra no se marcan");
 });

@@ -36,7 +36,11 @@ La API de Anthropic va aparte de la suscripción a Claude.ai: tener Pro o Max no
 
 **Gemini gratis:** el nivel gratuito de Gemini 3.8 Flash permite unos 20 pedidos por día, y cada ronda o ✨ Sugerir es un pedido. Cuando se agota, o cuando Google está saturado (error 503, que reintenta dos veces antes), la extensión pasa sola a Gemini 3.5 Flash-Lite, que tiene mucho más cupo, sin cambiar de proveedor, y vuelve a 3.8 Flash cuando se libera.
 
-**Anécdotas inventadas:** si un comentario cuenta algo que "hiciste" ("lo resolvimos", "nos pasó", "en mi experiencia"), la tarjeta lo marca con ⚠ para que confirmes que es real. Los modelos más chicos a veces las inventan aunque el prompt lo prohíba.
+**Anécdotas y cifras inventadas:** los modelos más chicos o gratis a veces inventan cosas aunque el prompt lo prohíba. La tarjeta marca con ⚠ dos casos para que los confirmes antes de publicar:
+- una frase que cuenta algo que "hiciste" ("en Ualá aprendimos…", "we built…") y que no tiene respaldo en el campo **Quién sos**. Si habla de lo que tu perfil sí dice, no molesta;
+- una cifra que no está en tu perfil ni en el post ("el 70% del esfuerzo"). Los años y los números de una cifra no se marcan.
+
+**Modelos gratis de OpenRouter:** razonan antes de responder, así que una ronda puede tardar de 1 a 2 minutos; si pasan de 170 segundos, la extensión corta y sigue con el respaldo. En las pruebas, varios modelos gratis cortaron la respuesta o devolvieron un formato inválido, y uno inventó datos. Si usás uno, probá primero con unos pocos posts.
 
 DeepSeek y OpenRouter están en la opción **DeepSeek, OpenRouter u otra compatible con OpenAI**. Esa misma opción sirve para cualquier API con el formato de OpenAI (Groq, Mistral, un modelo local): pegás la URL base y el modelo. **Ojo con los modelos más chicos o gratis:** respetan menos la regla de no inventar experiencias tuyas. Leé cada comentario antes de publicarlo.
 

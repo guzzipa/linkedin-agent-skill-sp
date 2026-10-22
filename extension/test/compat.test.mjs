@@ -54,3 +54,11 @@ test("la instrucción de formato menciona json y lleva el esquema", () => {
   assert.match(s, /json/);
   assert.match(s, /"required":\["ok"\]/);
 });
+
+test("si la API no responde a tiempo, corta y lo dice (para que pase al respaldo)", async () => {
+  globalThis.fetch = (url, init) => new Promise((_, reject) => init.signal.addEventListener("abort", () => reject(new Error("aborted"))));
+  await assert.rejects(
+    callCompat({ ...base, label: "OpenRouter", timeoutMs: 30 }),
+    (e) => e instanceof CompatError && e.status === 0 && /OpenRouter tardó más de 0 segundos|tardó más de/.test(e.message)
+  );
+});
