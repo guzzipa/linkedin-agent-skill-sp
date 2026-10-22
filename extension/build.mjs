@@ -1,7 +1,11 @@
 // Empaqueta el service worker (que usa el SDK de Anthropic) y la página de opciones,
 // y copia el resto a dist/. Cargá dist/ en chrome://extensions → "Cargar descomprimida".
 import * as esbuild from "esbuild";
-import { cpSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+
+// La versión queda escrita en el service worker y en la configuración: si no coinciden,
+// Chrome sigue usando el service worker viejo y hay que tocar ↻ en chrome://extensions.
+const VERSION = JSON.parse(readFileSync("package.json", "utf8")).version;
 
 const watch = process.argv.includes("--watch");
 const STATIC = ["manifest.json", "content.js", "content.css", "options.html"];
@@ -26,6 +30,7 @@ const ctx = await esbuild.context({
   platform: "browser",
   target: "chrome120",
   outdir: "dist",
+  define: { __BUILD_VERSION__: JSON.stringify(VERSION) },
   plugins: [copyStatic],
 });
 
