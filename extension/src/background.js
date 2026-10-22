@@ -282,6 +282,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     badge: () => setBadge(msg),
     test: () => testConnection(msg),
     openOptions: () => chrome.runtime.openOptionsPage().then(() => ({})),
+    ping: () => Promise.resolve({ version: __BUILD_VERSION__ }),
   };
   const handler = handlers[msg?.type];
   if (!handler) return false;

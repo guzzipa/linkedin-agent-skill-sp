@@ -150,6 +150,7 @@ Leé cada comentario antes de publicarlo. Sale con tu nombre, y un comentario qu
 | Qué pasa | Qué hacer |
 | --- | --- |
 | No aparece el botón 💬 | Recargá LinkedIn. Fijate en `chrome://extensions` que la extensión esté activada y sin errores. |
+| "Could not resolve authentication method…" al probar la conexión | Chrome sigue usando la versión anterior del service worker. Abrí `chrome://extensions`, tocá **↻** en LinkedIn Commenter y volvé a abrir la configuración. Desde la v0.7.1 la configuración lo detecta y lo avisa con un cartel amarillo. |
 | "Falta la API key" | Abrí la configuración, pegá la key y tocá **Guardar**. |
 | "API key inválida" o error 401 | La key está mal copiada o la borraste en la consola del proveedor. |
 | "Tu cuenta de la API de Anthropic no tiene saldo" | Cargá saldo en [console.anthropic.com](https://console.anthropic.com) → **Billing**. La ronda se reintenta sola cada dos minutos. |

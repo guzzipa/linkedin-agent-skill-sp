@@ -16,6 +16,8 @@
         permissions: { contains: async () => true, request: async () => true },
         runtime: { sendMessage: async (msg) => {
           __sent.push(msg);
+          // ?viejo=1 imita un service worker de una versión anterior: no conoce "ping" y no responde.
+          if (msg.type === "ping") { if (location.search.includes("viejo=1")) throw new Error("The message port closed before a response was received."); return { ok: true, version: "0.7.1" }; }
           if (msg.type === "test") return { ok: true, results: msg.providers.map((p) => p.provider === "gemini"
             ? { provider: "gemini", ok: true, model: "gemini-3.5-flash-lite", note: "3.8 Flash llegó a su límite, se libera en 13 h; mientras tanto uso Flash-Lite" }
             : { provider: p.provider, ok: false, error: "API key de OpenRouter inválida." }) };

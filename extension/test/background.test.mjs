@@ -9,6 +9,7 @@ import { join } from "node:path";
 const { outputFiles } = await esbuild.build({
   entryPoints: [join(import.meta.dirname, "..", "src", "background.js")],
   bundle: true, format: "iife", platform: "browser", target: "chrome120", write: false,
+  define: { __BUILD_VERSION__: JSON.stringify("test-1") },
 });
 const CODE = outputFiles[0].text;
 
@@ -134,4 +135,18 @@ test("marca los comentarios que cuentan una experiencia del usuario, para que la
   reply = opinion;
   res = await bg.send({ type: "round", posts: POSTS });
   assert.equal(res.picks[0].flags.some((f) => /experiencia tuya/.test(f.name)), false);
+});
+
+test("ping devuelve la versión del service worker (la configuración la usa para detectar una versión vieja)", async () => {
+  const bg = boot({}, () => json(500, {}));
+  assert.equal(JSON.stringify(await bg.send({ type: "ping" })), JSON.stringify({ ok: true, version: "test-1" }));
+});
+
+test("un service worker VIEJO no conoce ping: no responde, y eso es lo que delata la versión vieja", async () => {
+  const bg = boot({}, () => json(500, {}));
+  let answered = false;
+  // handler devuelve false para tipos desconocidos: sendResponse nunca se llama.
+  const handled = await Promise.race([bg.send({ type: "tipo-que-no-existe" }).then(() => (answered = true)), new Promise((r) => setTimeout(() => r("sin respuesta"), 50))]);
+  assert.equal(handled, "sin respuesta");
+  assert.equal(answered, false);
 });

@@ -5,6 +5,21 @@ import { COMPAT_PRESETS } from "./openai-compat.js";
 const FIELDS = Object.keys(DEFAULT_SETTINGS);
 const $ = (id) => document.getElementById(id);
 
+// ¿El service worker que está corriendo es de esta versión? Si el usuario recompiló pero no
+// tocó ↻, esta página es nueva y el service worker es viejo: los mensajes no coinciden y los
+// errores son engañosos (p. ej. "Could not resolve authentication method").
+async function staleWorker() {
+  try {
+    const res = await chrome.runtime.sendMessage({ type: "ping" });
+    return res?.version !== __BUILD_VERSION__;
+  } catch {
+    return true; // un service worker viejo no conoce "ping" y no responde
+  }
+}
+
+const RELOAD_MSG =
+  "Chrome sigue usando la versión anterior de la extensión. Abrí chrome://extensions, tocá ↻ en LinkedIn Commenter y volvé a abrir esta página.";
+
 function setStatus(text, isError = false) {
   $("status").textContent = text;
   $("status").className = isError ? "error" : "";
@@ -109,6 +124,7 @@ function keyMismatch(f) {
 }
 
 $("test").addEventListener("click", async () => {
+  if (await staleWorker()) return setStatus(RELOAD_MSG, true);
   const f = readForm();
   const providers = providersToTest(f);
   const mismatch = keyMismatch(f);
@@ -162,6 +178,13 @@ $("forget").addEventListener("click", async () => {
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.learnedRules && document.activeElement !== $("learnedRules")) $("learnedRules").value = changes.learnedRules.newValue || "";
   if (changes.lic_feedback) learnStats();
+});
+
+staleWorker().then((stale) => {
+  if (stale) {
+    $("reload").textContent = RELOAD_MSG;
+    $("reload").hidden = false;
+  }
 });
 
 load();
