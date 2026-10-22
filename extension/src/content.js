@@ -66,11 +66,53 @@
     }
   }
 
+  // Si se toca ↻ en chrome://extensions con LinkedIn abierto, esta pestaña conserva este script
+  // pero pierde la conexión con la extensión ("Extension context invalidated"). En vez de
+  // fallar en cada cambio de la página, se retira y avisa que hay que recargar.
+  let retired = false;
+  const alive = () => {
+    try {
+      return !!chrome.runtime?.id;
+    } catch {
+      return false;
+    }
+  };
+  const isDead = (err) => /context invalidated/i.test(err?.message || String(err || ""));
+
+  function retire() {
+    if (retired) return;
+    retired = true;
+    observer.disconnect();
+    clearTimeout(scanTimer);
+    clearTimeout(roundTimer);
+    document.getElementById("lic-panel-host")?.remove();
+    document.getElementById("lic-queue-host")?.remove();
+    for (const b of document.querySelectorAll(".lic-btn")) b.remove();
+    const note = document.createElement("div");
+    note.id = "lic-retired";
+    note.textContent = "LinkedIn Commenter se actualizó. Recargá esta página (⌘R) para seguir usándolo.";
+    note.style.cssText =
+      "position:fixed;right:20px;bottom:20px;z-index:2147483647;max-width:320px;padding:10px 14px;border-radius:12px;background:#fff3cd;color:#664d03;font:600 13px/1.4 -apple-system,system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer";
+    note.title = "Tocá para cerrar";
+    note.addEventListener("click", () => note.remove());
+    document.body.append(note);
+  }
+
+  // Cualquier promesa que falle por eso se atiende acá, sin ruido en la consola de errores.
+  window.addEventListener("unhandledrejection", (e) => {
+    if (isDead(e.reason)) {
+      e.preventDefault();
+      retire();
+    }
+  });
+
   let scanTimer = null;
-  new MutationObserver(() => {
+  const observer = new MutationObserver(() => {
+    if (!alive()) return retire();
     clearTimeout(scanTimer);
     scanTimer = setTimeout(scan, 400);
-  }).observe(document.body, { childList: true, subtree: true });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
   // Después de que se defina todo el script (la ronda, más abajo, usa constantes propias).
   queueMicrotask(scan);
 
@@ -466,6 +508,10 @@
   const PROMOTED_RE = /(^|\n)\s*(Promocionado|Promoted|Patrocinado|Sponsored)\s*($|\n)/i;
 
   async function getData() {
+    if (!alive()) {
+      retire();
+      throw new Error("Extension context invalidated.");
+    }
     const d = await store.get(["lic_queue", "lic_done", "lic_log", "autoRound", "maxPerRound", "maxPerDay", "skipAbove", "apiKey", "geminiKey", "compatKey"]);
     return {
       queue: d.lic_queue || [],
@@ -539,7 +585,7 @@
       const post = byId[p.id];
       fresh.queue.push({
         id: p.id, author: post.author, snippet: post.text.slice(0, 220), url: post.url,
-        tipo: p.tipo, motivo: p.motivo, puntaje: p.puntaje, text: p.text, flags: p.flags,
+        tipo: p.tipo, motivo: p.motivo, puntaje: p.puntaje, text: p.text, flags: p.flags, translated: !!p.translated,
         status: "pendiente", at: Date.now(),
       });
     }
@@ -754,7 +800,11 @@
     return el("div", { className: "card" }, [
       el("div", { className: "who", textContent: item.author || "Post" }),
       el("div", { className: "snip", textContent: item.snippet }),
-      el("div", { className: "why" }, [el("span", { className: "chip", textContent: item.tipo.replace(/_/g, " ") }), item.motivo]),
+      el("div", { className: "why" }, [
+        el("span", { className: "chip", textContent: item.tipo.replace(/_/g, " ") }),
+        ...(item.translated ? [el("span", { className: "chip", textContent: "traducido al idioma del post", title: "El modelo lo escribió en otro idioma y la extensión lo tradujo" })] : []),
+        item.motivo,
+      ]),
       area,
       ...flagList(item.flags || []),
       msg,
